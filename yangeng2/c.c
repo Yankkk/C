@@ -4,6 +4,6 @@
 int *fun(){
 	int re = 50;
 	static int mo;
-	return &re;
+	return &re; //returning the addredd of a local variable
 	
 }

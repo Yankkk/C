@@ -6,6 +6,6 @@ void fun(){
 	strcpy(p, "aaaa");
 	free(p);
 	
-	strcpy(p, "bbbb");
+	strcpy(p, "bbbb"); //after free a pointer and use it again
 	
 }
