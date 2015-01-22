@@ -4,7 +4,7 @@
 int main(){
 	int i = N, array[N];
 	for(;i >= 0; i--)
-		array[i] = i;
+		array[i] = i; // index out of bound
 
 	return 0;
 }

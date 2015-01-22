@@ -2,6 +2,6 @@
 
 int main(){
 	char *c = "hello";
-	strcpy(c, "world");
+	strcpy(c, "world"); //trying to change immutabel memory
 	
 }

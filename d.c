@@ -3,6 +3,6 @@
 
 int fun(){
 	int re;
-	int sum = re + 5;
+	int sum = re + 5; //using uninitialized variable
 	
 }
