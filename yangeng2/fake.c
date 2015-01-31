@@ -5,18 +5,12 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-
-typedef struct job{
-	
-	char content[100][2048];
-	FILE * ff;
-	//int ff;
-}*job_ptr;
+#include <stdarg.h>
 
 int main(int argc, char * argv[]){
 	
-	char content[100][2048];
 	FILE * ff;
+	char **content = (char ** )malloc(100 * sizeof(char *));
 	//job_ptr j = calloc(1, sizeof(struct job));
 	ff = fopen("Fakefile.txt", "r+");
 	if (argc < 2)
@@ -34,6 +28,7 @@ int main(int argc, char * argv[]){
 			char line[2048];
 			if(fgets(line, sizeof(line), ff)){
 				//printf("%s", line);
+				content[i] = (char *)malloc(2048 * sizeof(char));
 				strcpy(content[i], line);
 				//printf("%s", content[i]);
 			}
@@ -48,8 +43,6 @@ int main(int argc, char * argv[]){
 	
 	//argv[1]
 	int index = -1;
-	
-	
 	
 	int k;
 	for(k = 0; k < 100; k ++){
@@ -68,12 +61,31 @@ int main(int argc, char * argv[]){
 		exit(1);
 	}
 	
-	int k = index + 1
-	while(content[k] != ""){
-		printf("Running %s", content[k]);
+	k = index + 1;
+	
+	int pid = fork();
+	//printf("%d", pid);
+	if(pid == -1){
+		exit(1);
+	}
+	if(pid > 0){
+		int status;
+		waitpid(pid, &status, 0);
+		/**
+		if(status < 0){
+			_exit(1);
+		}
+		*/
+		printf("%s was built successfully! \n", name);
+		exit(0);
 	
 	}
-	exit(0);
+	if(pid == 0){
+		printf("Running ");
+		execl("/yangeng2/ls", "/bin/ls", ".", NULL);
+		
+		
+	}
 	
-	return EXIST_SUCCESS;
+	return 0;
 }
