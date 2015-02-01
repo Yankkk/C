@@ -7,6 +7,8 @@
 #include <fcntl.h>
 #include <stdarg.h>
 
+void execute(char **);
+
 int main(int argc, char * argv[]){
 	
 	FILE * ff;
@@ -62,30 +64,90 @@ int main(int argc, char * argv[]){
 	}
 	
 	k = index + 1;
-	
-	int pid = fork();
-	//printf("%d", pid);
+
+	while(content[k][0] == ' '){
+		printf("Running%s\n", content[k]);
+			
+		char ** arg = NULL;
+		char * p = strtok(content[k], " \"");
+		int m = 0;
+		while(p){
+			arg = realloc(arg, sizeof(char *) * ++m);
+			arg[m-1] = p;
+			p = strtok(NULL, " \"");
+			
+		}
+			
+		arg = realloc(arg, sizeof(char*)*(m+1));
+		arg[m] = NULL;
+		execute(arg);
+		k++;
+	}
+	//printf("%s was built successfully! \n", name);
+	exit(0);
+	/**
 	if(pid == -1){
 		exit(1);
 	}
 	if(pid > 0){
 		int status;
-		waitpid(pid, &status, 0);
-		/**
-		if(status < 0){
-			_exit(1);
-		}
-		*/
+		while( waitpid(pid, &status, 0) != pid);
+		//printf("%d %d\n", in, pid);
 		printf("%s was built successfully! \n", name);
 		exit(0);
 	
 	}
 	if(pid == 0){
-		printf("Running ");
-		execl("/yangeng2/ls", "/bin/ls", ".", NULL);
+		//while(content[k][0] == ' '){
+			printf("Running%s\n", content[k]);
+			
+			char ** arg = NULL;
+			char * p = strtok(content[k], " \"");
+			int m = 0;
+			while(p){
+				arg = realloc(arg, sizeof(char *) * ++m);
+				arg[m-1] = p;
+				p = strtok(NULL, " \"");
+			
+			}
+			
+			arg = realloc(arg, sizeof(char*)*(m+1));
+			arg[m] = NULL;
+			
+			printf("%s", arg[0]);
+			if(execvp(arg[0], arg) < 0){
+				printf("ERROR: exec failed\n");
+				exit(1);
+			}
+			//k++;
+			//printf("%d", k);
 		
-		
+		//}
+	
 	}
+	*/
 	
 	return 0;
+}
+
+
+void execute(char ** arg){
+	pid_t pid = fork();
+	if(pid == -1){
+		exit(1);
+	}
+	if(pid > 0){
+		int status;
+		//while( waitpid(pid, &status, 0) != pid);
+		//printf("%d %d\n", in, pid);
+		waitpid(pid, &status, 0);
+		//exit(0);
+	
+	}
+	if(pid == 0){
+			if(execvp(arg[0], arg) < 0){
+				printf("ERROR: exec failed\n");
+				exit(1);
+			}		
+	}
 }
