@@ -5,7 +5,5 @@
 
 int main(){
 	printf("%s", "my cat!");
-
-
 }
 
