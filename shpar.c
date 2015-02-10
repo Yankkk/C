@@ -11,16 +11,40 @@
 #include <sys/time.h>
 #include <sys/resource.h>
 
+
+
+
+typedef struct linkedlist{
+	char data[1000];
+	struct linkedlist * next;
+	struct linkedlist * previous;
+	//linkedlist * tail;
+	
+}list;
+
 char ** parse(char *);
 void execute(char **, pid_t *);
-void writeTofile(char *, int);
+void save(list *, char *, list *);
 
-/**
-typedef struct linkedlist{
-	char* data;
-	linkedlist * next;
-};
-*/
+void save(list * lists, char * data, list * head){
+	if(lists == NULL){
+		lists = (list*)malloc(sizeof(list));
+		lists->previous = NULL;
+		lists->next = NULL;
+		strcpy(lists->data, data);
+		head = lists;
+		printf("%s", head->data);
+	}
+	else{
+		list * temp = (list*)malloc(sizeof(list));
+		temp->previous = lists;
+		temp->next = NULL;
+		strcpy(temp->data, data);
+		lists->next = temp;
+		lists = temp;
+				}
+
+}
 
 int main(int argc, char * argv[]){
 	char* buffer = (char*)malloc(2048*sizeof(char));
@@ -40,7 +64,15 @@ int main(int argc, char * argv[]){
 	pid_t child3 = -1;
 	pid_t child4 = -1;
 	
-
+	list * list1 = NULL;
+	list * list2 = NULL;
+	list * list3 = NULL;
+	list * list4 = NULL;
+	list * head1 = NULL;
+	list * head2 = NULL;
+	list * head3 = NULL;
+	list * head4 = NULL;
+	
 	while(1){
 		fgets(buffer, 2047, stdin);
 		
@@ -93,8 +125,9 @@ q        Quits.\n");
 				commond[i-4] =buffer[i];
 			}
 			commond[i] = '\0';
-	
-			writeTofile(commond, pro);
+			char t[2048];
+			strcpy(t, commond);
+			
 			arg = parse(commond);
 			/*
 			char ** tempptr = arg;
@@ -104,7 +137,24 @@ q        Quits.\n");
 			}
 			*/
 			if(pro == '1'){
-				strcpy(c1, commond);
+				
+				if(list1 == NULL){
+					list1 = (list*)malloc(sizeof(list));
+					list1->previous = NULL;
+					list1->next = NULL;
+					strcpy(list1->data, t);
+					head1 = list1;
+					//printf("%s", head1->data);
+				}
+				else{
+					list * temp = (list*)malloc(sizeof(list));
+					temp->previous = list1;
+					temp->next = NULL;
+					strcpy(temp->data, t);
+					list1->next = temp;
+					list1 = temp;
+				}
+			
 				if(child1 != -1){
 					kill(child1, SIGKILL);
 				}
@@ -112,7 +162,22 @@ q        Quits.\n");
 				execute(arg, &child1);
 			}
 			else if(pro== '2'){
-				strcpy(c2, commond);
+				if(list2 == NULL){
+					list2 = (list*)malloc(sizeof(list));
+					list2->previous = NULL;
+					list2->next = NULL;
+					strcpy(list2->data, t);
+					head2 = list2;
+					//printf("%s", head1->data);
+				}
+				else{
+					list * temp = (list*)malloc(sizeof(list));
+					temp->previous = list2;
+					temp->next = NULL;
+					strcpy(temp->data, t);
+					list2->next = temp;
+					list2 = temp;
+				}
 				if(child2 != -1){
 					kill(child2, SIGKILL);
 				}
@@ -120,7 +185,23 @@ q        Quits.\n");
 				execute(arg, &child2);
 			}
 			else if(pro== '3'){
-				strcpy(c3, commond);
+				if(list3 == NULL){
+					list3 = (list*)malloc(sizeof(list));
+					list3->previous = NULL;
+					list3->next = NULL;
+					strcpy(list3->data, t);
+					head3 = list3;
+					//printf("%s", head1->data);
+				}
+				else{
+					list * temp = (list*)malloc(sizeof(list));
+					temp->previous = list3;
+					temp->next = NULL;
+					strcpy(temp->data, t);
+					list3->next = temp;
+					list3 = temp;
+				}
+			
 				if(child3 != -1){
 					kill(child3, SIGKILL);
 				}
@@ -128,7 +209,23 @@ q        Quits.\n");
 				execute(arg, &child3);
 			}
 			else{
-				strcpy(c4, commond);
+				if(list4 == NULL){
+					list4 = (list*)malloc(sizeof(list));
+					list4->previous = NULL;
+					list4->next = NULL;
+					strcpy(list4->data, t);
+					head4 = list4;
+					printf("%s", head1->data);
+				}
+				else{
+					list * temp = (list*)malloc(sizeof(list));
+					temp->previous = list4;
+					temp->next = NULL;
+					strcpy(temp->data, t);
+					list4->next = temp;
+					list4 = temp;
+				}
+				
 				if(child4 != -1){
 					kill(child4, SIGKILL);
 				}
@@ -145,10 +242,27 @@ q        Quits.\n");
 				commond[i-4] =buffer[i];
 			}
 			commond[i] = '\0';
-			writeTofile(commond, pro);
+			char t[2048];
+			strcpy(t, commond);
+			
 			arg = parse(commond);
 			if(pro == '1'){
-				strcpy(c1, commond);
+				if(list1 == NULL){
+					list1 = (list*)malloc(sizeof(list));
+					list1->previous = NULL;
+					list1->next = NULL;
+					strcpy(list1->data, t);
+					head1 = list1;
+					//printf("%s", head1->data);
+				}
+				else{
+					list * temp = (list*)malloc(sizeof(list));
+					temp->previous = list1;
+					temp->next = NULL;
+					strcpy(temp->data, t);
+					list1->next = temp;
+					list1 = temp;
+				}
 				if(child1 != -1){
 					waitpid(child1, &status, 0);
 				}
@@ -156,7 +270,22 @@ q        Quits.\n");
 				execute(arg, &child1);
 			}
 			else if(pro=='2'){
-				strcpy(c2, commond);
+				if(list2 == NULL){
+					list2 = (list*)malloc(sizeof(list));
+					list2->previous = NULL;
+					list2->next = NULL;
+					strcpy(list2->data, t);
+					head2 = list2;
+					//printf("%s", head1->data);
+				}
+				else{
+					list * temp = (list*)malloc(sizeof(list));
+					temp->previous = list2;
+					temp->next = NULL;
+					strcpy(temp->data, t);
+					list2->next = temp;
+					list2 = temp;
+				}
 				if(child2 != -1){
 					waitpid(child2, &status, 0);
 				}
@@ -164,7 +293,22 @@ q        Quits.\n");
 				execute(arg, &child2);
 			}
 			else if(pro=='3'){
-				strcpy(c3, commond);
+				if(list3 == NULL){
+					list3 = (list*)malloc(sizeof(list));
+					list3->previous = NULL;
+					list3->next = NULL;
+					strcpy(list3->data, t);
+					head3 = list3;
+					//printf("%s", head1->data);
+				}
+				else{
+					list * temp = (list*)malloc(sizeof(list));
+					temp->previous = list3;
+					temp->next = NULL;
+					strcpy(temp->data, t);
+					list3->next = temp;
+					list3 = temp;
+				}
 				if(child3 != -1){
 					waitpid(child3, &status, 0);
 				}
@@ -172,7 +316,22 @@ q        Quits.\n");
 				execute(arg, &child3);
 			}
 			else{
-				strcpy(c4, commond);
+				if(list4 == NULL){
+					list4 = (list*)malloc(sizeof(list));
+					list4->previous = NULL;
+					list4->next = NULL;
+					strcpy(list4->data, t);
+					head4 = list4;
+					//printf("%s", head1->data);
+				}
+				else{
+					list * temp = (list*)malloc(sizeof(list));
+					temp->previous = list4;
+					temp->next = NULL;
+					strcpy(temp->data, t);
+					list4->next = temp;
+					list4 = temp;
+				}
 				if(child4 != -1){
 					waitpid(child4, &status, 0);
 				}
@@ -238,7 +397,7 @@ q        Quits.\n");
 				printf("1 not using\n");
 			}
 			else{
-				printf("1 %s %s, %d user, %d system\n", c1, sta, u, s);
+				printf("1 %s %s, %d user, %d system\n", list1->data, sta, u, s);
 			}
 			
 			
@@ -255,7 +414,7 @@ q        Quits.\n");
 				printf("2 not using\n");
 			}
 			else{
-				printf("2 %s %s, %d user, %d system\n", c2, sta, u, s);
+				printf("2 %s %s, %d user, %d system\n", list2->data, sta, u, s);
 			}
 			
 			int s3 = waitpid(child3, &status, WNOHANG);
@@ -271,7 +430,7 @@ q        Quits.\n");
 				printf("3 not using\n");
 			}
 			else{
-				printf("3 %s %s, %d user, %d system\n", c3, sta, u, s);
+				printf("3 %s %s, %d user, %d system\n", list3->data, sta, u, s);
 			}
 			
 			
@@ -288,42 +447,46 @@ q        Quits.\n");
 				printf("4 not using\n");
 			}
 			else{
-				printf("4 %s %s, %d user, %d system\n", c4, sta, u, s);
+				printf("4 %s %s, %d user, %d system\n", list4->data, sta, u, s);
 			}
 		}
 		
 		if(buffer[0] == 'l'){
 			char temp[2048];
 			if(buffer[2] == '1'){
-				FILE* f = fopen("child1.txt", "r+");
-				while(!feof(f)){
-					fgets(temp, 2047, f);
-					printf("%s", temp);
+				list * temp = head1;
+				while(temp != NULL){
+					printf("%s", temp->data);
+					//printf("yeah!\n");
+					temp = temp->next;
 				}
 			
 			}
+			
 			if(buffer[2] == '2'){
-				FILE* f = fopen("child2.txt", "r+");
-				while(!feof(f)){
-					fgets(temp, 2047, f);
-					printf("%s", temp);
+				list * temp = head2;
+				while(temp != NULL){
+					printf("%s", temp->data);
+					//printf("yeah!\n");
+					temp = temp->next;
 				}
 			}
 			if(buffer[2] == '3'){
-				FILE* f = fopen("child3.txt", "r+");
-				while(!feof(f)){
-					fgets(temp, 2047, f);
-					printf("%s", temp);
+				list * temp = head3;
+				while(temp != NULL){
+					printf("%s", temp->data);
+					//printf("yeah!\n");
+					temp = temp->next;
 				}
 			}
 			else{
-				FILE* f = fopen("child4.txt", "r+");
-				while(!feof(f)){
-					fgets(temp, 2047, f);
-					printf("%s", temp);
+				list * temp = head4;
+				while(temp != NULL){
+					printf("%s", temp->data);
+					//printf("yeah!\n");
+					temp = temp->next;
 				}
 			}
-			
 		}
 		if(buffer[0] == 'o'){
 			
@@ -369,24 +532,4 @@ void execute(char ** arg, pid_t * child){
 	}
 }
 
-void writeTofile(char * buffer, int pro){
-	//printf("%c", pro);
-	if(pro == '1'){
-		FILE * f = fopen("child1.txt", "r+");
-		fprintf(f, buffer);
-	}
-	else if(pro == '2'){
-		FILE * f = fopen("child2.txt", "r+");
-		fprintf(f, buffer);
-	}
-	else if(pro == '3'){
-		FILE * f = fopen("child3.txt", "r+");
-		fprintf(f, buffer);
-	}
-	else{
-		FILE * f = fopen("child4.txt", "r+");
-		fprintf(f, buffer);
-	}
-
-}
 
