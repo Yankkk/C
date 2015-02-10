@@ -24,24 +24,24 @@ typedef struct linkedlist{
 
 char ** parse(char *);
 void execute(char **, pid_t *);
-void save(list *, char *, list *);
+void save(list **, char *, list **);
 
-void save(list * lists, char * data, list * head){
-	if(lists == NULL){
-		lists = (list*)malloc(sizeof(list));
-		lists->previous = NULL;
-		lists->next = NULL;
-		strcpy(lists->data, data);
-		head = lists;
-		printf("%s", head->data);
+void save(list ** lists, char * data, list ** head){
+	if((*lists) == NULL){
+		(*lists) = (list*)malloc(sizeof(list));
+		(*lists)->previous = NULL;
+		(*lists)->next = NULL;
+		strcpy((*lists)->data, data);
+		(*head) = (*lists);
+		//printf("%s", (*head)->data);
 	}
 	else{
 		list * temp = (list*)malloc(sizeof(list));
-		temp->previous = lists;
+		temp->previous = (*lists);
 		temp->next = NULL;
 		strcpy(temp->data, data);
-		lists->next = temp;
-		lists = temp;
+		(*lists)->next = temp;
+		(*lists) = temp;
 				}
 
 }
@@ -54,11 +54,10 @@ int main(int argc, char * argv[]){
 	char** arg = NULL;
 	char pro;
 	int status;
-	char c1[2048];
-	char c2[2048];
-	char c3[2048];
-	char c4[2048];
-	
+	struct rusage usage1;
+	struct rusage usage2;
+	struct rusage usage3;
+	struct rusage usage4;
 	pid_t child1 = -1;
 	pid_t child2 = -1;
 	pid_t child3 = -1;
@@ -72,6 +71,8 @@ int main(int argc, char * argv[]){
 	list * head2 = NULL;
 	list * head3 = NULL;
 	list * head4 = NULL;
+	
+	long a, b, c, d = 0;
 	
 	while(1){
 		fgets(buffer, 2047, stdin);
@@ -138,99 +139,58 @@ q        Quits.\n");
 			*/
 			if(pro == '1'){
 				
-				if(list1 == NULL){
-					list1 = (list*)malloc(sizeof(list));
-					list1->previous = NULL;
-					list1->next = NULL;
-					strcpy(list1->data, t);
-					head1 = list1;
-					//printf("%s", head1->data);
-				}
-				else{
-					list * temp = (list*)malloc(sizeof(list));
-					temp->previous = list1;
-					temp->next = NULL;
-					strcpy(temp->data, t);
-					list1->next = temp;
-					list1 = temp;
-				}
-			
+				save(&list1, t, &head1);
+				getrusage(RUSAGE_SELF, &usage1);
 				if(child1 != -1){
 					kill(child1, SIGKILL);
 				}
 				child1 = fork();
-				execute(arg, &child1);
+				
+				//execute(arg, &child1);
+				if(child1 == 0){
+					execl("/bin/sh", "sh", "-c", buffer+4, (char*)0);
+					perror("error\n");
+				}
+				
 			}
 			else if(pro== '2'){
-				if(list2 == NULL){
-					list2 = (list*)malloc(sizeof(list));
-					list2->previous = NULL;
-					list2->next = NULL;
-					strcpy(list2->data, t);
-					head2 = list2;
-					//printf("%s", head1->data);
-				}
-				else{
-					list * temp = (list*)malloc(sizeof(list));
-					temp->previous = list2;
-					temp->next = NULL;
-					strcpy(temp->data, t);
-					list2->next = temp;
-					list2 = temp;
-				}
+				save(&list2, t, &head2);
+				getrusage(RUSAGE_SELF, &usage2);
 				if(child2 != -1){
 					kill(child2, SIGKILL);
 				}
 				child2 = fork();
-				execute(arg, &child2);
+				//execute(arg, &child2);
+				if(child2 == 0){
+					execl("/bin/sh", "sh", "-c", buffer+4, (char*)0);
+					perror("error\n");
+				}
 			}
 			else if(pro== '3'){
-				if(list3 == NULL){
-					list3 = (list*)malloc(sizeof(list));
-					list3->previous = NULL;
-					list3->next = NULL;
-					strcpy(list3->data, t);
-					head3 = list3;
-					//printf("%s", head1->data);
-				}
-				else{
-					list * temp = (list*)malloc(sizeof(list));
-					temp->previous = list3;
-					temp->next = NULL;
-					strcpy(temp->data, t);
-					list3->next = temp;
-					list3 = temp;
-				}
-			
+				save(&list3, t, &head3);
+				getrusage(RUSAGE_SELF, &usage3);
 				if(child3 != -1){
 					kill(child3, SIGKILL);
 				}
 				child3 = fork();
-				execute(arg, &child3);
+				//execute(arg, &child3);
+				if(child3 == 0){
+					execl("/bin/sh", "sh", "-c", buffer+4, (char*)0);
+					perror("error\n");
+				}
 			}
-			else{
-				if(list4 == NULL){
-					list4 = (list*)malloc(sizeof(list));
-					list4->previous = NULL;
-					list4->next = NULL;
-					strcpy(list4->data, t);
-					head4 = list4;
-					printf("%s", head1->data);
-				}
-				else{
-					list * temp = (list*)malloc(sizeof(list));
-					temp->previous = list4;
-					temp->next = NULL;
-					strcpy(temp->data, t);
-					list4->next = temp;
-					list4 = temp;
-				}
-				
+			else if(pro == '4'){
+				save(&list4, t, &head4);
+				getrusage(RUSAGE_SELF, &usage4);
 				if(child4 != -1){
 					kill(child4, SIGKILL);
 				}
 				child4 = fork();
-				execute(arg, &child4);
+				//execute(arg, &child4);
+				if(child4 == 0){
+					execl("/bin/sh", "sh", "-c", buffer+4, (char*)0);
+					perror("error\n");
+				}
 			}
 		}
 		
@@ -247,136 +207,117 @@ q        Quits.\n");
 			
 			arg = parse(commond);
 			if(pro == '1'){
-				if(list1 == NULL){
-					list1 = (list*)malloc(sizeof(list));
-					list1->previous = NULL;
-					list1->next = NULL;
-					strcpy(list1->data, t);
-					head1 = list1;
-					//printf("%s", head1->data);
-				}
-				else{
-					list * temp = (list*)malloc(sizeof(list));
-					temp->previous = list1;
-					temp->next = NULL;
-					strcpy(temp->data, t);
-					list1->next = temp;
-					list1 = temp;
-				}
+				save(&list1, t, &head1);
+				getrusage(RUSAGE_SELF, &usage1);
 				if(child1 != -1){
 					waitpid(child1, &status, 0);
 				}
 				child1 = fork();
-				execute(arg, &child1);
+				//execute(arg, &child1);
+				if(child1 == 0){
+					execl("/bin/sh", "sh", "-c", buffer+4, (char*)0);
+					perror("error\n");
+				}
 			}
 			else if(pro=='2'){
-				if(list2 == NULL){
-					list2 = (list*)malloc(sizeof(list));
-					list2->previous = NULL;
-					list2->next = NULL;
-					strcpy(list2->data, t);
-					head2 = list2;
-					//printf("%s", head1->data);
-				}
-				else{
-					list * temp = (list*)malloc(sizeof(list));
-					temp->previous = list2;
-					temp->next = NULL;
-					strcpy(temp->data, t);
-					list2->next = temp;
-					list2 = temp;
-				}
+				save(&list2, t, &head2);
+				getrusage(RUSAGE_SELF, &usage2);
 				if(child2 != -1){
 					waitpid(child2, &status, 0);
 				}
 				child2 = fork();
-				execute(arg, &child2);
+				//execute(arg, &child2);
+				if(child1 == 0){
+					execl("/bin/sh", "sh", "-c", buffer+4, (char*)0);
+					perror("error\n");
+				}
 			}
 			else if(pro=='3'){
-				if(list3 == NULL){
-					list3 = (list*)malloc(sizeof(list));
-					list3->previous = NULL;
-					list3->next = NULL;
-					strcpy(list3->data, t);
-					head3 = list3;
-					//printf("%s", head1->data);
-				}
-				else{
-					list * temp = (list*)malloc(sizeof(list));
-					temp->previous = list3;
-					temp->next = NULL;
-					strcpy(temp->data, t);
-					list3->next = temp;
-					list3 = temp;
-				}
+				save(&list3, t, &head3);
+				getrusage(RUSAGE_SELF, &usage3);
 				if(child3 != -1){
 					waitpid(child3, &status, 0);
 				}
 				child3 = fork();
-				execute(arg, &child3);
+				//execute(arg, &child3);
+				if(child1 == 0){
+					execl("/bin/sh", "sh", "-c", buffer+4, (char*)0);
+					perror("error\n");
+				}
 			}
-			else{
-				if(list4 == NULL){
-					list4 = (list*)malloc(sizeof(list));
-					list4->previous = NULL;
-					list4->next = NULL;
-					strcpy(list4->data, t);
-					head4 = list4;
-					//printf("%s", head1->data);
-				}
-				else{
-					list * temp = (list*)malloc(sizeof(list));
-					temp->previous = list4;
-					temp->next = NULL;
-					strcpy(temp->data, t);
-					list4->next = temp;
-					list4 = temp;
-				}
+			else if(pro == '4'){
+				save(&list4, t, &head4);
+				getrusage(RUSAGE_SELF, &usage4);
 				if(child4 != -1){
 					waitpid(child4, &status, 0);
 				}
 				child4 = fork();
-				execute(arg, &child4);
+				//execute(arg, &child4);
+				if(child1 == 0){
+					execl("/bin/sh", "sh", "-c", buffer+4, (char*)0);
+					perror("error\n");
+				}
 			}
 		
 		}
 		
 		
 		if(buffer[0] == 'z'){
-			if(buffer[0] == 1){
-				if(child1 == 0){
-					kill(child1, SIGSTOP);
+			if(buffer[2] == '1'){
+				if(child1 > 0){
+					int status = waitpid(child1, &status, WNOHANG);
+					if(status == 0 && status != -1){
+						kill(child1, SIGSTOP);
+					}
 				}
 			}
-			if(buffer[0] == 2){
-				if(child2 == 0){
-					kill(child2, SIGSTOP);
+			if(buffer[2] == '2'){
+				if(child2 > 0){
+					int status = waitpid(child2, &status, WNOHANG);
+					if(status == 0 && status != -1){
+						kill(child2, SIGSTOP);
+					}
 				}
 			}
-			if(buffer[0] == 3){
-				if(child3 == 0){
-					kill(child3, SIGSTOP);
+			if(buffer[2] == '3'){
+				if(child3 > 0){
+					int status = waitpid(child3, &status, WNOHANG);
+					if(status == 0 && status != -1){
+						kill(child3, SIGSTOP);
+					}
 				}
 			}
-			if(buffer[0] == 4){
-				if(child4 == 0){
-					kill(child4, SIGSTOP);
+			if(buffer[2] == '4'){
+				if(child4 > 0){
+					int status = waitpid(child4, &status, WNOHANG);
+					if(status == 0 && status != -1){
+						kill(child4, SIGSTOP);
+					}
 				}
 			}
+			
 		}
 		
 		if(buffer[0] == 'g'){
-			if(buffer[0] == 1){
-				kill(child1, SIGCONT);
+			if(buffer[2] == '1'){
+				if(child1 > 0)
+					kill(child1, SIGCONT);
+			
 			}
-			if(buffer[0] == 2){
-				kill(child2, SIGCONT);
+			if(buffer[2] == '2'){
+				if(child2 > 0){
+					kill(child2, SIGCONT);
+				}
 			}
-			if(buffer[0] == 3){
-				kill(child3, SIGCONT);
+			if(buffer[2] == '3'){
+				if(child3 > 0){
+					kill(child3, SIGCONT);
+				}
 			}
-			if(buffer[0] == 4){
-				kill(child4, SIGCONT);
+			if(buffer[2] == '4'){
+				if(child4 > 0){
+					kill(child4, SIGCONT);
+				}
 			}
 		}
 		
@@ -384,108 +325,107 @@ q        Quits.\n");
 			
 			int status;
 			int s1 = waitpid(child1, &status, WNOHANG);
-			int u = getrusage(child1, ru_utime);
-			int s = getrusage(child1, ru_stime);
+			
 			char sta[2048];			
 			if(s1 == 0)
+			
 				strcpy(sta, "running");
 			if(s1 == -1)
 				strcpy(sta, "error");
 			if(s1 == child1)
-				strcpy(sta, "normally exit");	
-			if(strlen(c1) == 0){
+				sprintf(sta, "normally exit (exit value %d)", WEXITSTATUS(s1));
+			if(list1 == NULL){
 				printf("1 not using\n");
 			}
 			else{
-				printf("1 %s %s, %d user, %d system\n", list1->data, sta, u, s);
+				printf("1 %s %s, %d.%06ld s user, %d.%06ld s system\n", list1->data, sta, usage1.ru_stime.tv_sec, usage1.ru_utime.tv_usec, usage1.ru_stime.tv_sec, usage1.ru_stime.tv_usec);
+				//printf("1 %s %s, %d.%06lds user, %d.%06lds system\n", list1->data, sta, c, a, d, b);
 			}
 			
 			
-			int s2 = waitpid(child2, &status, WNOHANG);
-			u = getrusage(child2, ru_utime);
-			s = getrusage(child2, ru_stime);		
+			int s2 = waitpid(child2, &status, WNOHANG);	
 			if(s2 == 0)
 				strcpy(sta, "running");
 			if(s2 == -1)
 				strcpy(sta, "error");
 			if(s2 == child2)
-				strcpy(sta, "normally exit");	
-			if(strlen(c2) == 0){
+				sprintf(sta, "normally exit (exit value %d)", WEXITSTATUS(s2));
+			if(list2 == NULL){
 				printf("2 not using\n");
 			}
 			else{
-				printf("2 %s %s, %d user, %d system\n", list2->data, sta, u, s);
+				printf("2 %s %s, %d.%06lds user, %d.%06lds system\n", list2->data, sta, usage2.ru_utime.tv_sec, usage2.ru_utime.tv_usec, usage2.ru_stime.tv_sec, usage2.ru_stime.tv_usec);
 			}
 			
 			int s3 = waitpid(child3, &status, WNOHANG);
-			u = getrusage(child3, ru_utime);
-			s = getrusage(child3, ru_stime);	
 			if(s3 == 0)
 				strcpy(sta, "running");
 			if(s3 == -1)
 				strcpy(sta, "error");
 			if(s3 == child3)
-				strcpy(sta, "normally exit");	
-			if(strlen(c3) == 0){
+				sprintf(sta, "normally exit (exit value %d)", WEXITSTATUS(s3));
+			if(list3 == NULL){
 				printf("3 not using\n");
 			}
 			else{
-				printf("3 %s %s, %d user, %d system\n", list3->data, sta, u, s);
+				printf("3 %s %s, %d.%06lds user, %d.%06lds system\n", list3->data, sta, usage3.ru_utime.tv_sec, usage3.ru_utime.tv_usec, usage3.ru_stime.tv_sec, usage3.ru_stime.tv_usec);
 			}
 			
 			
 			int s4 = waitpid(child4, &status, WNOHANG);
-			u = getrusage(child4, ru_utime);
-			s = getrusage(child4, ru_stime);
 			if(s3 == 0)
 				strcpy(sta, "running");
 			if(s3 == -1)
 				strcpy(sta, "error");
 			if(s3 == child3)
-				strcpy(sta, "normally exit");	
-			if(strlen(c3) == 0){
+				sprintf(sta, "normally exit (exit value %d)", WEXITSTATUS(s4));
+			if(list4 == NULL){
 				printf("4 not using\n");
 			}
 			else{
-				printf("4 %s %s, %d user, %d system\n", list4->data, sta, u, s);
+				printf("4 %s %s, %d.%06lds user, %d.%06lds system\n", list4->data, sta, usage4.ru_stime.tv_sec, usage4.ru_utime.tv_usec, usage4.ru_stime.tv_sec, usage4.ru_stime.tv_usec);
 			}
+			
 		}
 		
 		if(buffer[0] == 'l'){
 			char temp[2048];
 			if(buffer[2] == '1'){
-				list * temp = head1;
-				while(temp != NULL){
-					printf("%s", temp->data);
-					//printf("yeah!\n");
-					temp = temp->next;
-				}
-			
+					list * temp = head1;
+					while(temp != NULL){
+						printf("%s", temp->data);
+						temp = temp->next;
+					}
 			}
-			
 			if(buffer[2] == '2'){
 				list * temp = head2;
-				while(temp != NULL){
-					printf("%s", temp->data);
-					//printf("yeah!\n");
-					temp = temp->next;
-				}
+					//if(temp == NULL)
+						//printf("NOTHING!\n");
+					while(temp != NULL){
+						printf("%s", temp->data);
+						temp = temp->next;
+					}
+				
 			}
 			if(buffer[2] == '3'){
 				list * temp = head3;
-				while(temp != NULL){
-					printf("%s", temp->data);
-					//printf("yeah!\n");
-					temp = temp->next;
-				}
+					//if(temp == NULL)
+					//	printf("NOTHING!\n");
+					while(temp != NULL){
+						printf("%s\n", temp->data);
+						temp = temp->next;
+					}
+				
 			}
 			else{
 				list * temp = head4;
-				while(temp != NULL){
-					printf("%s", temp->data);
-					//printf("yeah!\n");
-					temp = temp->next;
-				}
+					//if(temp == NULL)
+					//	printf("NOTHING!\n");
+					while(temp != NULL){
+						printf("%s", temp->data);
+
+						temp = temp->next;
+					}
 			}
 		}
 		if(buffer[0] == 'o'){
@@ -507,7 +447,7 @@ char ** parse(char * buffer){
 	while(p){
 		arg = realloc(arg, sizeof(char *) * ++m);
 		arg[m-1] = p;
-		p = strtok(NULL, " \"");//		
+		p = strtok(NULL, " \"/");//		
 	}
 			
 	arg = realloc(arg, sizeof(char*)*(m+1));
@@ -525,10 +465,15 @@ void execute(char ** arg, pid_t * child){
 		return;
 	}
 	if(*child == 0){
-			if(execvp(arg[0], arg) < 0){
-				printf("ERROR: exec failed\n");
-				exit(1);
-			}		
+			if(arg[0][0] == '.'){
+				
+			}
+			else{
+				if(execvp(arg[0], arg) < 0){
+					printf("ERROR: exec failed\n");
+					exit(1);
+				}	
+			}	
 	}
 }
 
