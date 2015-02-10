@@ -72,11 +72,10 @@ int main(int argc, char * argv[]){
 	list * head3 = NULL;
 	list * head4 = NULL;
 	
-	long a, b, c, d = 0;
 	
 	while(1){
 		fgets(buffer, 2047, stdin);
-		
+		//close(1);
 		
 		if(buffer[0] == 'q'){
 			if(child1 != -1){
