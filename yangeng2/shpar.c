@@ -71,7 +71,10 @@ int main(int argc, char * argv[]){
 	list * head2 = NULL;
 	list * head3 = NULL;
 	list * head4 = NULL;
-	
+	int s1 = -1;
+	int s2 = -1;
+	int s3 = -1;
+	int s4 = -1;
 	
 	while(1){
 		fgets(buffer, 2047, stdin);
@@ -123,11 +126,22 @@ q        Quits.\n");
 			int i;
 			for(i = 4; i < strlen(buffer); i++){
 				commond[i-4] =buffer[i];
+				
 			}
+			//printf("%s\n", buffer);
 			commond[i] = '\0';
+			//printf("%s\n", commond);
 			char t[2048];
-			strcpy(t, commond);
+			int m;
+			for(m = 0; m < strlen(commond); m++){
+				if(commond[m-1] == '\n')
+					break;
+				t[m] = commond[m];
+			}
 			
+			//strncpy(t, commond, i);
+			t[m] = '\0';
+			//printf("%s\n", t);
 			arg = parse(commond);
 			/*
 			char ** tempptr = arg;
@@ -144,7 +158,8 @@ q        Quits.\n");
 					kill(child1, SIGKILL);
 				}
 				child1 = fork();
-				
+			
+				//wait3(&status, 0, &usage1);
 				//execute(arg, &child1);
 				if(child1 == 0){
 					execl("/bin/sh", "sh", "-c", buffer+4, (char*)0);
@@ -153,6 +168,7 @@ q        Quits.\n");
 				
 			}
 			else if(pro== '2'){
+				//printf("%s\n", t);
 				save(&list2, t, &head2);
 				getrusage(RUSAGE_SELF, &usage2);
 				if(child2 != -1){
@@ -323,66 +339,82 @@ q        Quits.\n");
 		if(buffer[0] == 'i'){
 			
 			int status;
-			int s1 = waitpid(child1, &status, WNOHANG);
-			
-			char sta[2048];			
+			//int s1 = waitpid(child1, &status, WNOHANG);
+			if(s1 == -1 || s1 != child1){
+				s1 = wait4(child1, &status, WNOHANG, &usage1);
+			}
+			char sta[2048];	
+			//if(child1 <= 0){	
+			printf("%d %d\n", child1, s1);	
 			if(s1 == 0)
-			
 				strcpy(sta, "running");
 			if(s1 == -1)
 				strcpy(sta, "error");
 			if(s1 == child1)
 				sprintf(sta, "normally exit (exit value %d)", WEXITSTATUS(s1));
+			//}
 			if(list1 == NULL){
 				printf("1 not using\n");
 			}
+			
 			else{
-				printf("1 %s %s, %d.%06ld s user, %d.%06ld s system\n", list1->data, sta, usage1.ru_stime.tv_sec, usage1.ru_utime.tv_usec, usage1.ru_stime.tv_sec, usage1.ru_stime.tv_usec);
+				printf("1 %s %s, %d.%06ld ms user, %d.%06ld s system\n", list1->data, sta, usage1.ru_utime.tv_sec, usage1.ru_utime.tv_usec, usage2.ru_stime.tv_sec, usage1.ru_stime.tv_usec);
 				//printf("1 %s %s, %d.%06lds user, %d.%06lds system\n", list1->data, sta, c, a, d, b);
 			}
 			
+			char sta2[2048];
+			//int s2 = waitpid(child2, &status, WNOHANG);	
+			//int s2 = wait4(child2, &status, WNOHANG, &usage2);
 			
-			int s2 = waitpid(child2, &status, WNOHANG);	
+			if(s2 == -1 || s2 != child2){
+				s2 = waitpid(child2, &status, WNOHANG);
+			}
 			if(s2 == 0)
-				strcpy(sta, "running");
+				strcpy(sta2, "running");
 			if(s2 == -1)
-				strcpy(sta, "error");
+				strcpy(sta2, "error");
 			if(s2 == child2)
-				sprintf(sta, "normally exit (exit value %d)", WEXITSTATUS(s2));
+				sprintf(sta2, "normally exit (exit value %d)", WEXITSTATUS(s2));
 			if(list2 == NULL){
 				printf("2 not using\n");
 			}
 			else{
-				printf("2 %s %s, %d.%06lds user, %d.%06lds system\n", list2->data, sta, usage2.ru_utime.tv_sec, usage2.ru_utime.tv_usec, usage2.ru_stime.tv_sec, usage2.ru_stime.tv_usec);
+				printf("2 %s %s, %d.%06lds user, %d.%06lds system\n", list2->data, sta2, usage2.ru_utime.tv_sec, usage2.ru_utime.tv_usec, usage2.ru_stime.tv_sec, usage2.ru_stime.tv_usec);
 			}
 			
-			int s3 = waitpid(child3, &status, WNOHANG);
+			char sta3[2048];
+			if(s3 == -1 || s3 != child3){
+				s3 = waitpid(child3, &status, WNOHANG);
+			}
+			
 			if(s3 == 0)
-				strcpy(sta, "running");
+				strcpy(sta3, "running");
 			if(s3 == -1)
-				strcpy(sta, "error");
+				strcpy(sta3, "error");
 			if(s3 == child3)
-				sprintf(sta, "normally exit (exit value %d)", WEXITSTATUS(s3));
+				sprintf(sta3, "normally exit (exit value %d)", WEXITSTATUS(s3));
 			if(list3 == NULL){
 				printf("3 not using\n");
 			}
 			else{
-				printf("3 %s %s, %d.%06lds user, %d.%06lds system\n", list3->data, sta, usage3.ru_utime.tv_sec, usage3.ru_utime.tv_usec, usage3.ru_stime.tv_sec, usage3.ru_stime.tv_usec);
+				printf("3 %s %s, %d.%06lds user, %d.%06lds system\n", list3->data, sta3, usage3.ru_utime.tv_sec, usage3.ru_utime.tv_usec, usage3.ru_stime.tv_sec, usage3.ru_stime.tv_usec);
 			}
 			
-			
-			int s4 = waitpid(child4, &status, WNOHANG);
-			if(s3 == 0)
-				strcpy(sta, "running");
-			if(s3 == -1)
-				strcpy(sta, "error");
-			if(s3 == child3)
-				sprintf(sta, "normally exit (exit value %d)", WEXITSTATUS(s4));
+			char sta4[2048];
+			if(s4 == -1 || s4 != child4){
+				s4 = waitpid(child4, &status, WNOHANG);
+			}
+			if(s4 == 0)
+				strcpy(sta4, "running");
+			if(s4 == -1)
+				strcpy(sta4, "error");
+			if(s4 == child4)
+				sprintf(sta4, "normally exit (exit value %d)", WEXITSTATUS(s4));
 			if(list4 == NULL){
 				printf("4 not using\n");
 			}
 			else{
-				printf("4 %s %s, %d.%06lds user, %d.%06lds system\n", list4->data, sta, usage4.ru_stime.tv_sec, usage4.ru_utime.tv_usec, usage4.ru_stime.tv_sec, usage4.ru_stime.tv_usec);
+				printf("4 %s %s, %d.%06lds user, %d.%06lds system\n", list4->data, sta4, usage4.ru_stime.tv_sec, usage4.ru_utime.tv_usec, usage4.ru_stime.tv_sec, usage4.ru_stime.tv_usec);
 			}
 			
 		}
