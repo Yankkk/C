@@ -24,7 +24,7 @@
   
   To score points you need to add your name and netid to the following line copyright line.
   
-  Student code: Copyright (C) [Full name] ([netid]) 2015
+  Student code: Copyright (C) Yan Geng (yangeng2) 2015
   
   i.e. replace "[Full name]" and "[netid]" with your full name and netid.
   */
@@ -36,6 +36,19 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
+
+typedef struct mem_list
+{
+	void * addr;
+	size_t size;
+	int free;
+	struct mem_list * next;
+	struct mem_list * prev;
+	
+} mem_list;
+
+mem_list * list = NULL;
+int list_ct = 0;
 
 /**
  * Allocate space for array in memory
@@ -89,7 +102,49 @@ void *calloc(size_t num, size_t size)
  */
 void *malloc(size_t size)
 {
-	return NULL;
+	mem_list * p = list;
+	mem_list * chosen = NULL;
+	
+	while(p != NULL){
+		if(p->free && (p->size >= size )){
+			if(chosen == NULL || (chosen && p->size < chosen->size)){
+				chosen = p;
+			}
+		}
+		
+		p = p->next;
+	}
+	
+	if(chosen != NULL){
+		chosen->free = 0;
+		/**
+		size_t * t = chosen->addr + size;
+		*(t) = size;
+		*/
+		return chosen->addr;
+	}
+	
+	chosen = sbrk(0);
+	sbrk(sizeof(mem_list));
+	chosen->addr = sbrk(0);
+	if(sbrk(size) == (void *)-1){
+		return NULL;
+	}
+	//chosen->addr += sizeof(mem_list);
+	chosen->size = size;
+	chosen->free = 0;
+	chosen->next = list;
+	chosen->prev = NULL;
+	/**
+	size_t * t = chosen->addr + size;
+	*(t) = size;
+	*/
+	if(list != NULL){
+		list->prev = chosen;
+	}
+	list = chosen;
+	
+	return chosen->addr;
 }
 
 
@@ -115,6 +170,34 @@ void free(void *ptr)
 	if (!ptr)
 		return;
 
+	mem_list * temp = (mem_list * )(ptr - sizeof(mem_list));
+	
+	temp->free = 1;
+	/**
+	if(temp->next != NULL){
+		if(temp->next->free){
+			size_t s = temp->size + temp->next->size + sizeof(mem_list);
+			temp->size = s;
+			mem_list * te = temp->next->next;
+			temp->next = te;
+			if(te != NULL){
+				te->prev = temp;
+			}
+		}
+	}
+	
+	if(temp->prev != NULL){
+		if(temp->prev->free){
+			size_t s = temp->size + temp->prev->size + sizeof(mem_list);
+			temp->prev->size = s;
+			
+			temp->prev->next = temp->next;
+			if(temp->next != NULL){
+				temp->next->prev = temp->prev;
+			}
+		}
+	}
+	*/
 	return;
 }
 
@@ -167,6 +250,28 @@ void free(void *ptr)
 void *realloc(void *ptr, size_t size)
 {
  // Optimization hint: Suppose size is a bit less than your existing allocation...
+ 
+ 	if(!size){
+ 		free(ptr);
+ 		return NULL;
+ 	}
+ 	
+ 	size_t old_size = 0;
+ 	void * new_ptr = malloc(size);
+ 	
+ 	if(!ptr)
+ 		return new_ptr;
+ 	mem_list * p = list;
+ 	
+ 	while(p){
+ 		if(p->addr == ptr){
+ 			old_size = p->size;
+ 			break;
+ 		}
+ 		p = p->next;
+ 	}
+ 	memcpy(new_ptr, ptr, old_size < size ? old_size : size);
+ 	free(ptr);
 
-	return NULL;
+	return new_ptr;
 }
