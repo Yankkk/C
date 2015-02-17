@@ -39,9 +39,10 @@ void *reduce(void *ptr, int size)
 
 		free(ptr2);
 		ptr1 = realloc(ptr1, size);
-
+		//printf("size %d %d\n", size/2 , *((int *)ptr1) );
 		if (*((int *)ptr1) != size / 2)
 		{
+			
 			printf("Memory failed to contain correct data after realloc()!\n");
 			exit(3);
 		}
