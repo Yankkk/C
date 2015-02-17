@@ -36,7 +36,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
-#define BLOCK_SIZE 40;
+#define BLOCK_SIZE sizeof(mem_list);
 
 typedef struct mem_list
 {
@@ -50,7 +50,7 @@ typedef struct mem_list
 
 mem_list * find_block( size_t );
 mem_list * extend_heap(mem_list *, size_t );
-void split(mem_list * , size_t );
+void split(mem_list *, size_t);
 size_t align8(size_t );
 int valid_addr(void * );
 mem_list * get(void * );
@@ -92,18 +92,31 @@ mem_list * extend_heap(mem_list * last, size_t size){
 	return t->addr;
 }
 
-void split(mem_list * t, size_t s){
-	mem_list * n;
-	n = t->addr + s;
-	n->size = t->size - s - BLOCK_SIZE;
+void split(mem_list * chosen, size_t s){
+
+	mem_list * n = NULL;
+	n = chosen->addr + s;
 	n->addr = n + BLOCK_SIZE;
 	n->free = 1;
-	t->size = s;
-	n->next = t->next;
-	if(n->next != NULL)	
+	n->prev = chosen;
+	n->next = chosen->next;
+	chosen->next = n;
+	n->size = chosen->size - s - BLOCK_SIZE;
+
+	chosen->size = s;
+	if(n->next != NULL){
 		n->next->prev = n;
-	t->next = n;
-	n->prev = t;
+		if(n->next->free){
+			combine(n);
+		}
+	}
+		
+	if(n->next == NULL){
+		tail = n;
+		//tail->next = NULL;
+		//brk(n);
+	}
+	
 }
 
 size_t align8(size_t s){
@@ -167,36 +180,12 @@ void *calloc(size_t num, size_t size)
  * @see http://www.cplusplus.com/reference/clibrary/cstdlib/malloc/
  */
 void *malloc(size_t size){
-	//mem_list * t;
-	//mem_list * last;
-	size_t s = align8(size);
-	/*
-	if(head){	
-		t = find_block(s);
-		if(t){
-			size_t a = t->size -s;
-			size_t b = BLOCK_SIZE + 8;
-			if(a>=b){
-				split(t, s);
-			}
-			t->free = 0;
-		}
-		else{
-			
-			t = extend_heap(tail, s);
-			if(!t)
-				return NULL;
-		}
-	}
-	else{
-		t = extend_heap(NULL, s);
-		if(!t)
-			return NULL;
-		head = t;
-	}
-	*/
+	
 	mem_list * p = head;
 	mem_list * chosen = NULL;
+	mem_list * n = NULL;
+	//size_t s = align8(size);
+	size_t s = size;
 	while(p!= NULL){
 		if(p->free && (p->size >= s)){
 			chosen = p;
@@ -206,6 +195,13 @@ void *malloc(size_t size){
 	}
 	if(chosen){
 		chosen->free = 0;
+		size_t k = BLOCK_SIZE + 8;
+		
+		if(chosen->size-s >= k){
+			//printf("%ld\n", chosen->size-s);
+			//split(chosen, s);
+		}
+	
 		return chosen->addr;
 	}
 	chosen = sbrk(0);
@@ -246,13 +242,12 @@ void *malloc(size_t size){
  *    passed as argument, no action occurs.
  */
  mem_list * get(void * t){
- 	
  	return t-BLOCK_SIZE;	
  }
  
  int valid_addr(void * t){
  	if(head){
- 		if(t > head->addr && t < sbrk(0))
+ 		if(t > head->addr && t <= tail->addr)
  			return t == (get(t)->addr);
  	}
  	return 0;
@@ -283,7 +278,8 @@ void free(void *ptr)
 			combine(temp);
 		}
 		if(temp->prev && temp->prev->free){
-			combine(temp->prev);
+			temp = temp->prev;
+			combine(temp);
 		}
 		if(temp->next == NULL){
 			tail = temp->prev;
@@ -291,7 +287,6 @@ void free(void *ptr)
 			brk(temp);
 		}
 	}
-
 	return;
 }
 
@@ -349,19 +344,30 @@ void *realloc(void *ptr, size_t size)
  		free(ptr);
  		return NULL;
  	}
- 	
- 	size_t old_size = 0;
- 	void * new_ptr = malloc(size);
- 	
+ 	//size_t s = align8(size);
+ 	size_t s = size;
+  	void * new_ptr = NULL;
  	if(!ptr)
- 		return new_ptr;
- 		
- 	mem_list * temp = (mem_list *)(ptr-sizeof(mem_list));
- 	
- 	old_size = temp->size;
- 	//printf("%ld\n", old_size);
- 	memcpy(new_ptr, ptr, old_size < size ? old_size : size);
- 	free(ptr);
+ 		return malloc(size);
+ 	mem_list * t = get(ptr);
+ 	if(t->size >= size){
+ 		return ptr;
+ 		}
 
+ 	else{
+ 		new_ptr = malloc(size);
+ 		mem_list * n = get(new_ptr);
+ 	
+ 		if(new_ptr == NULL)
+ 			return NULL;
+ 		size_t i;
+ 		for(i = 0; i < t->size && i < n->size; i++){
+ 			*((char*)new_ptr+i) = *((char*)ptr+i);
+  			}
+  	
+ 		//memcpy(new_ptr, ptr, t->size < s ? t->size : s);
+ 		}
+ 	free(ptr);
+ 	
 	return new_ptr;
 }
