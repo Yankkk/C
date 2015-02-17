@@ -36,6 +36,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
+#define BLOCK_SIZE 40;
 
 typedef struct mem_list
 {
@@ -47,10 +48,69 @@ typedef struct mem_list
 	
 } mem_list;
 
+mem_list * find_block( size_t );
+mem_list * extend_heap(mem_list *, size_t );
+void split(mem_list * , size_t );
+size_t align8(size_t );
+int valid_addr(void * );
+mem_list * get(void * );
+mem_list * combine(mem_list *);
+
+mem_list * head = NULL;
+mem_list * tail = NULL;
 
 
-mem_list * list = NULL;
+mem_list * find_block(size_t size){
+	mem_list * t = head;
+	while(t){
+		if(t->free && (t->size >= size)){
+			return t;
+		}
+		t = t->next;
+	}
+	return t;
+}
 
+mem_list * extend_heap(mem_list * last, size_t size){
+	mem_list * t;
+	
+	t = sbrk(40);
+	t->addr = sbrk(0);
+	
+	if(sbrk(size) == (void *)-1)
+		return NULL;
+		
+	t->size = size;
+	t->next = NULL;
+	if(last){
+		last->next = t;
+		t->prev = last;
+		
+	}
+	t->free = 0;
+	tail = t;
+	return t->addr;
+}
+
+void split(mem_list * t, size_t s){
+	mem_list * n;
+	n = t->addr + s;
+	n->size = t->size - s - BLOCK_SIZE;
+	n->addr = n + BLOCK_SIZE;
+	n->free = 1;
+	t->size = s;
+	n->next = t->next;
+	if(n->next != NULL)	
+		n->next->prev = n;
+	t->next = n;
+	n->prev = t;
+}
+
+size_t align8(size_t s){
+	if((s & 0x7) == 0)
+		return s;
+	return ((s>>3) + 1) << 3;
+}
 /**
  * Allocate space for array in memory
  * 
@@ -76,7 +136,12 @@ mem_list * list = NULL;
  */
 void *calloc(size_t num, size_t size)
 {
-  return NULL;
+	void * ptr = malloc(num * size);
+	if(ptr){
+		size_t s = align8(num*size);
+		memset(ptr, 0x00, s);
+	}
+	return ptr;
 }
 
 
@@ -101,59 +166,64 @@ void *calloc(size_t num, size_t size)
  *
  * @see http://www.cplusplus.com/reference/clibrary/cstdlib/malloc/
  */
-void *malloc(size_t size)
-{
-	mem_list * p = list;
-	mem_list * chosen = NULL;
-	
-	while(p != NULL){
-		if(p->free && (p->size >= size)){
-			if(chosen == NULL || (chosen && chosen->size > p->size)){
-				chosen = p;
+void *malloc(size_t size){
+	//mem_list * t;
+	//mem_list * last;
+	size_t s = align8(size);
+	/*
+	if(head){	
+		t = find_block(s);
+		if(t){
+			size_t a = t->size -s;
+			size_t b = BLOCK_SIZE + 8;
+			if(a>=b){
+				split(t, s);
 			}
+			t->free = 0;
 		}
-		
+		else{
+			
+			t = extend_heap(tail, s);
+			if(!t)
+				return NULL;
+		}
+	}
+	else{
+		t = extend_heap(NULL, s);
+		if(!t)
+			return NULL;
+		head = t;
+	}
+	*/
+	mem_list * p = head;
+	mem_list * chosen = NULL;
+	while(p!= NULL){
+		if(p->free && (p->size >= s)){
+			chosen = p;
+			break;
+		}
 		p = p->next;
 	}
-	
-	if(chosen != NULL){
+	if(chosen){
 		chosen->free = 0;
-		/**
-		if(chosen->size > (size+sizeof(mem_list))){
-			size_t t = chosen->size;
-			chosen->size = size;
-			mem_list * n = chosen->addr + size;
-			n->free = 1;
-			n->size = t - size - sizeof(mem_list);
-			n->next = chosen->next;
-			chosen->next = n;
-			n->prev = chosen;
-			n->next->prev = n;
-		}
-		*/
-		size_t * k = (size_t *)(chosen->addr + chosen->size);
-		(*k) = chosen->size;
 		return chosen->addr;
 	}
-	
 	chosen = sbrk(0);
 	sbrk(sizeof(mem_list));
 	chosen->addr = sbrk(0);
-	if(sbrk(size + sizeof(size_t)) == (void *)-1){
+	if(sbrk(s) == (void*)-1){
 		return NULL;
 	}
-	//chosen->addr += sizeof(mem_list);
-	chosen->size = size;
+	if(head == NULL && tail == NULL)
+		head = chosen;
+		
+	chosen->size = s;
 	chosen->free = 0;
-	chosen->next = list;
-	chosen->prev = NULL;
-	size_t * k = (size_t *)(chosen->addr + size);
-	(*k) = size;
-
-	if(list != NULL){
-		list->prev = chosen;
-	}
-	list = chosen;
+	chosen->next = NULL;
+	chosen->prev = tail;
+	if(tail != NULL)
+		tail->next = chosen;
+	tail = chosen;
 	
 	return chosen->addr;
 }
@@ -175,67 +245,53 @@ void *malloc(size_t size)
  *    calloc() or realloc() to be deallocated.  If a null pointer is
  *    passed as argument, no action occurs.
  */
+ mem_list * get(void * t){
+ 	
+ 	return t-BLOCK_SIZE;	
+ }
+ 
+ int valid_addr(void * t){
+ 	if(head){
+ 		if(t > head->addr && t < sbrk(0))
+ 			return t == (get(t)->addr);
+ 	}
+ 	return 0;
+ }
+ 
+ mem_list * combine(mem_list * t){
+ 	if(t->next && t->next->free){
+ 		t->size += BLOCK_SIZE + t->next->size;
+ 		t->next = t->next->next;
+ 		if(t->next){
+ 			t->next->prev = t;
+ 		}
+ 	}
+ 	return t;
+ }
+ 
 void free(void *ptr)
 {
 	// "If a null pointer is passed as argument, no action occurs."
 	if (!ptr)
 		return;
 
-	mem_list * temp = (mem_list * )(ptr - sizeof(mem_list));
-	
-	temp->free = 1;
-	/*
-	size_t * p = temp->addr - sizeof(size_t);
-	size_t * n = temp->addr + temp->size; 
-	mem_list * a = NULL;
-	mem_list * b = NULL;
-	if(p != NULL){
-		a = (mem_list *)(p - (*p) - sizeof(mem_list));
-		if(a->size == 0)
-			a = NULL;
-	}
-	if(n != NULL){
-		b = (mem_list *)(n + sizeof(size_t));
-		if(b->size == 0)
-			b = NULL;
-		//printf("%ld\n", b->size);
-	}
-	
-	if(b != NULL){
-		if(b->free == 1){
-			//size_t s = temp->size + b->size + sizeof(mem_list) + sizeof(size_t);
-			//temp->size = s;
-			
-			size_t * k = temp->addr + s;
-			(*k) = s;
-			
-			if(b->prev != NULL){
-				b->prev->next = b->next;
-			}
-			if(b->next != NULL){
-				b->next->prev = b->prev;
-			}
-		
+	mem_list * temp;
+	if(valid_addr(ptr)){
+		temp = get(ptr);
+		temp->free = 1;
+		if(temp->next && temp->next->free){
+			combine(temp);
+		}
+		if(temp->prev && temp->prev->free){
+			combine(temp->prev);
+		}
+		if(temp->next == NULL){
+			tail = temp->prev;
+			tail->next = NULL;
+			brk(temp);
 		}
 	}
-	*/
-	/**
-	if(a != NULL){
-		if(a->free == 1){
-			size_t s = temp->size + a->size + sizeof(size_t) + sizeof(mem_list);
-			a->size = s;
-			size_t * k = a->addr + s;
-			(*k) = s;
-			
-			if(temp->prev != NULL){
-				temp->prev->next = temp->next;
-			}
-			if(temp->next != NULL){
-				temp->next->prev = temp->prev;
-			}	
-		}
-	}
-	*/
+
 	return;
 }
 
