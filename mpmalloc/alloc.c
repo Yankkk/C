@@ -112,9 +112,9 @@ void split(mem_list * chosen, size_t s){
 	}
 		
 	if(n->next == NULL){
-		tail = n;
-		//tail->next = NULL;
-		//brk(n);
+		tail = chosen;
+		tail->next = NULL;
+		brk(n);
 	}
 	
 }
@@ -199,7 +199,7 @@ void *malloc(size_t size){
 		
 		if(chosen->size-s >= k){
 			//printf("%ld\n", chosen->size-s);
-			//split(chosen, s);
+			split(chosen, s);
 		}
 	
 		return chosen->addr;
@@ -368,6 +368,5 @@ void *realloc(void *ptr, size_t size)
  		//memcpy(new_ptr, ptr, t->size < s ? t->size : s);
  		}
  	free(ptr);
- 	
 	return new_ptr;
 }
