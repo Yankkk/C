@@ -52,6 +52,14 @@ public class MainActivity extends ActionBarActivity {
         return result;
 
     }
+
+    public static int countA(float[] a, float[] b) {
+        int count = 0;
+        for(int i = 0 ; i < a.length; i++)
+            if(a[i] >= b[i]) count ++;
+        return count;
+    }
+
     public int benchmarkJava(float[] data) {
         long startTime = System.currentTimeMillis();
         long endTime = startTime + 1000;
@@ -61,12 +69,30 @@ public class MainActivity extends ActionBarActivity {
         return iterCount;
     }
 
+    public int benchmarkJavaCount(float[] a, float[] b) {
+        long startTime = System.currentTimeMillis();
+        long endTime = startTime + 1000;
+        int iterCount = 0;
+        for(; System.currentTimeMillis() < endTime; iterCount++ )
+            countA(a, b);
+        return iterCount;
+    }
+
     public int benchmarkC(float[] data) {
         long startTime = System.currentTimeMillis();
         long endTime = startTime + 1000;
         int iterCount = 0;
         for(; System.currentTimeMillis() < endTime; iterCount++ )
             CGlue.findMin(data);
+        return iterCount;
+    }
+
+    public int benchmarkCCount(float[] a, float[] b) {
+        long startTime = System.currentTimeMillis();
+        long endTime = startTime + 1000;
+        int iterCount = 0;
+        for(; System.currentTimeMillis() < endTime; iterCount++ )
+            CGlue.count(a, b);
         return iterCount;
     }
     public void reportResult(final String mesg) {
@@ -85,14 +111,22 @@ public class MainActivity extends ActionBarActivity {
     public void runBenchmark() {
         mTextView.setText("Starting ...\nData Size:"+DATA_SIZE+" floats\n");
         final float[] data = createFloatData(DATA_SIZE);
-
+        final float[] a = createFloatData(DATA_SIZE);
+        final float[] b = createFloatData(DATA_SIZE);
         /* Check that Java and C calculate the same result */
         float jresult = findMinimum(data);
         float cresult = CGlue.findMin(data);
 
+        int jr = countA(a, b);
+        int cr = CGlue.count(a, b);
+
         mTextView.append("Java result="+jresult+", c result="+cresult+"\n");
+        mTextView.append("Java count result="+jr+", c count result="+cr+"\n");
         if(jresult != cresult) {
             mTextView.append("Not the same!\n");
+        }
+        if(jr != cr){
+            mTextView.append("Count Not the same!\n");
         }
         /* The UI thread cannot be stalled for more than a second or two.
         For benchmarking purposes we need another thread to perform the calculation in the background
@@ -101,15 +135,20 @@ public class MainActivity extends ActionBarActivity {
             public void run() {
                 int runs  = 5; /* Run each benchmark 5 times */
 
-                int[][] results = new int[runs][2];
+                int[][] results = new int[runs][4];
                 for(int i=0;i<runs;i++) {
 
                     results[i][0] = benchmarkJava(data);
                     results[i][1] = benchmarkC(data);
+                    results[i][2] = benchmarkJavaCount(a, b);
+                    results[i][3] = benchmarkCCount(a, b);
 
                     /* Post the results to the screen using the UI thread */
                     reportResult("Java: " + results[i][0] + ", C:" + results[i][1] + " iterations per second");
+                    reportResult("Count Java: " + results[i][2] + ", Count C:" + results[i][3] + " iterations per second");
                 }
+
+
 
                 /* We've finished benchmarking. use the UI thread to redisplay the Start button */
                 mTextView.post(new Runnable() {

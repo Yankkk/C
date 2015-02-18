@@ -278,7 +278,6 @@ void free(void *ptr)
 	// "If a null pointer is passed as argument, no action occurs."
 	if (!ptr)
 		return;
-
 	mem_list * temp;
 	if(valid_addr(ptr)){
 		temp = get(ptr);
@@ -356,12 +355,12 @@ void *realloc(void *ptr, size_t size)
  	size_t s = align8(size);
   	void * new_ptr = NULL;
  	if(!ptr)
- 		return malloc(size);
+ 		return malloc(s);
  	mem_list * t = get(ptr);
  	if(t->size >= s){
  		size_t k = BLOCK_SIZE + 8;
  		/*
- 		if(t->size - s > k){
+ 		if(t->size-s > k){
  			split(ptr, s);	
  		}
  		*/
@@ -375,18 +374,19 @@ void *realloc(void *ptr, size_t size)
 		}
 	}
  	
- 		new_ptr = malloc(size);
- 		mem_list * n = get(new_ptr);
+ 	new_ptr = malloc(s);
+ 	mem_list * n = get(new_ptr);
  	
- 		if(new_ptr == NULL)
- 			return NULL;
- 		size_t i;
- 		/*
- 		for(i = 0; i < t->size && i < n->size; i++){
- 			*((size_t*)new_ptr+i) = *((size_t*)ptr+i);
-  			}
-  	*/
- 		memcpy(new_ptr, ptr, t->size < s ? t->size : s);
+ 	if(new_ptr == NULL)
+ 		return NULL;
+ 	size_t i;
+
+ 		//memcpy(new_ptr, ptr, t->size < s ? t->size : s);
+ 	size_t * src = t->addr;
+ 	size_t * dst = n->addr;
+ 	for(i = 0; i*8<t->size && i*8<n->size; i++){
+ 		dst[i] = src[i];
+ 	}
  	
  	free(ptr);
 	return new_ptr;

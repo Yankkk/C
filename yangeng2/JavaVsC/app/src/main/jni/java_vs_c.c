@@ -1,6 +1,12 @@
 #include <stdio.h>
 #include <jni.h>
 #include <string.h>
+#include <android/log.h>
+
+#define LOG_TAG "NdkC"
+#define LOGI(...)  __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
+#define LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
+
 
 // Todo #1 generate the .h file to get the correct function name:
 /**
@@ -49,3 +55,25 @@ JNIEXPORT jfloat JNICALL Java_edu_illinois_cs241_javavsc_CGlue_findMin
     (*env)->ReleaseFloatArrayElements(env, data, carr, 0);
     return min;
 }
+JNIEXPORT jint JNICALL Java_edu_illinois_cs241_javavsc_CGlue_count
+  (JNIEnv * env, jclass CGlue, jfloatArray a, jfloatArray b)
+  {
+    LOGI("SETUP");
+    int len = (*env)->GetArrayLength(env, a);
+    int count = 0;
+    int i;
+    jfloat * ca = (*env) -> GetFloatArrayElements(env, a, 0);
+    jfloat * cb = (*env) -> GetFloatArrayElements(env, b, 0);
+    LOGE("SETUP FAILED");
+    for(i = 0; i < len; i++){
+        if(ca[i] >= cb[i])
+            count++;
+
+    }
+
+    (*env)->ReleaseFloatArrayElements(env, a, ca, 0);
+    (*env)->ReleaseFloatArrayElements(env, b, cb, 0);
+
+    return count;
+    LOGI("SETUP EXIT");
+  }
