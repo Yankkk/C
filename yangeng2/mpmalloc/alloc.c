@@ -112,9 +112,9 @@ void split(mem_list * chosen, size_t s){
 	}
 		
 	if(n->next == NULL){
-		tail = chosen;
+		tail = n;
 		tail->next = NULL;
-		brk(n);
+		//brk(n);
 	}
 	
 }
@@ -184,12 +184,21 @@ void *malloc(size_t size){
 	mem_list * p = head;
 	mem_list * chosen = NULL;
 	mem_list * n = NULL;
-	//size_t s = align8(size);
-	size_t s = size;
+	size_t s = align8(size);
+	//size_t s = size;
 	while(p!= NULL){
-		if(p->free && (p->size >= s)){
-			chosen = p;
-			break;
+		if(s < 512){
+			if(p->free){
+				if(!chosen || chosen->size > p->size){
+					chosen = p;
+				}
+			}
+		}
+		else{
+			if(p->free && (p->size >= s)){
+				chosen = p;
+				break;
+			}
 		}
 		p = p->next;
 	}
@@ -199,7 +208,7 @@ void *malloc(size_t size){
 		
 		if(chosen->size-s >= k){
 			//printf("%ld\n", chosen->size-s);
-			split(chosen, s);
+			//split(chosen, s);
 		}
 	
 		return chosen->addr;
@@ -344,29 +353,41 @@ void *realloc(void *ptr, size_t size)
  		free(ptr);
  		return NULL;
  	}
- 	//size_t s = align8(size);
- 	size_t s = size;
+ 	size_t s = align8(size);
   	void * new_ptr = NULL;
  	if(!ptr)
  		return malloc(size);
  	mem_list * t = get(ptr);
- 	if(t->size >= size){
- 		return ptr;
+ 	if(t->size >= s){
+ 		size_t k = BLOCK_SIZE + 8;
+ 		/*
+ 		if(t->size - s > k){
+ 			split(ptr, s);	
  		}
-
- 	else{
+ 		*/
+ 		return ptr;
+ 	}
+ 	if(t->next){
+ 		size_t n = t->size + BLOCK_SIZE + t->next->size;
+		if(t->next->free && s <= n ){
+			combine(t);
+			return ptr;
+		}
+	}
+ 	
  		new_ptr = malloc(size);
  		mem_list * n = get(new_ptr);
  	
  		if(new_ptr == NULL)
  			return NULL;
  		size_t i;
+ 		/*
  		for(i = 0; i < t->size && i < n->size; i++){
- 			*((char*)new_ptr+i) = *((char*)ptr+i);
+ 			*((size_t*)new_ptr+i) = *((size_t*)ptr+i);
   			}
-  	
- 		//memcpy(new_ptr, ptr, t->size < s ? t->size : s);
- 		}
+  	*/
+ 		memcpy(new_ptr, ptr, t->size < s ? t->size : s);
+ 	
  	free(ptr);
 	return new_ptr;
 }
