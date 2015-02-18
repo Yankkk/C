@@ -11,5 +11,6 @@ public class CGlue {
     // Then you can use these as a starting point for  your program
     public static native String hello();
     public static native float findMin(float[] data);
+    public static native int count(float[] a, float[] b);
 
 }

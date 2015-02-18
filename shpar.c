@@ -150,8 +150,11 @@ q        Quits.\n");
 				tempptr++;
 			}
 			*/
+			int stdout_cpy = dup(1);
+			close(1);
+			int files;
 			if(pro == '1'){
-				
+				files = open("p1.txt", O_CREAT|O_TRUNC|O_RDWR, S_IRUSR|S_IWUSR);
 				save(&list1, t, &head1);
 				getrusage(RUSAGE_SELF, &usage1);
 				if(child1 != -1){
@@ -168,6 +171,7 @@ q        Quits.\n");
 				
 			}
 			else if(pro== '2'){
+				files = open("p2.txt", O_CREAT|O_TRUNC|O_RDWR, S_IRUSR|S_IWUSR);
 				//printf("%s\n", t);
 				save(&list2, t, &head2);
 				getrusage(RUSAGE_SELF, &usage2);
@@ -182,6 +186,7 @@ q        Quits.\n");
 				}
 			}
 			else if(pro== '3'){
+				files = open("p3.txt", O_CREAT|O_TRUNC|O_RDWR, S_IRUSR|S_IWUSR);
 				save(&list3, t, &head3);
 				getrusage(RUSAGE_SELF, &usage3);
 				if(child3 != -1){
@@ -195,6 +200,7 @@ q        Quits.\n");
 				}
 			}
 			else if(pro == '4'){
+				files = open("p4.txt", O_CREAT|O_TRUNC|O_RDWR, S_IRUSR|S_IWUSR);
 				save(&list4, t, &head4);
 				getrusage(RUSAGE_SELF, &usage4);
 				if(child4 != -1){
@@ -207,6 +213,8 @@ q        Quits.\n");
 					perror("error\n");
 				}
 			}
+			close(files);
+			dup2(stdout_cpy, 1);
 		}
 		
 		if(buffer[0] == 'w'){
@@ -221,7 +229,12 @@ q        Quits.\n");
 			strcpy(t, commond);
 			
 			arg = parse(commond);
+			int files;
+			int stdout_cpy = dup(1);
+			close(1);
 			if(pro == '1'){
+			
+				files = open("p1.txt", O_CREAT|O_TRUNC|O_RDWR, S_IRUSR|S_IWUSR);
 				save(&list1, t, &head1);
 				getrusage(RUSAGE_SELF, &usage1);
 				if(child1 != -1){
@@ -235,6 +248,7 @@ q        Quits.\n");
 				}
 			}
 			else if(pro=='2'){
+				files = open("p2.txt", O_CREAT|O_TRUNC|O_RDWR, S_IRUSR|S_IWUSR);
 				save(&list2, t, &head2);
 				getrusage(RUSAGE_SELF, &usage2);
 				if(child2 != -1){
@@ -248,6 +262,7 @@ q        Quits.\n");
 				}
 			}
 			else if(pro=='3'){
+				files = open("p3.txt", O_CREAT|O_TRUNC|O_RDWR, S_IRUSR|S_IWUSR);
 				save(&list3, t, &head3);
 				getrusage(RUSAGE_SELF, &usage3);
 				if(child3 != -1){
@@ -261,6 +276,7 @@ q        Quits.\n");
 				}
 			}
 			else if(pro == '4'){
+				files = open("p4.txt", O_CREAT|O_TRUNC|O_RDWR, S_IRUSR|S_IWUSR);
 				save(&list4, t, &head4);
 				getrusage(RUSAGE_SELF, &usage4);
 				if(child4 != -1){
@@ -459,8 +475,51 @@ q        Quits.\n");
 					}
 			}
 		}
-		if(buffer[0] == 'o'){
+		if(buffer[0] == 'o' && strlen(buffer) > 1){
+			char num = buffer[2];
+			FILE * file;
+			//printf("%c\n", num);
+			if(num == '1'){
 			
+				if(child1 > 0){
+					file = fopen("p1.txt", "r");
+				}
+				else{
+					printf("Process not created\n");
+				}
+			}
+			else if(num == '2'){
+				if(child2 > 0){
+					file = fopen("p2.txt", "r");
+				}
+				else{
+					printf("Process not created\n");
+				}
+			}
+			else if(num == '3'){
+				if(child3 > 0){
+					file = fopen("p3.txt", "r");
+				}
+				else{
+					printf("Process not created\n");
+				}
+			}
+			else if(num == '4'){
+				if(child4 > 0){
+					file = fopen("p4.txt", "r");
+				}
+				else{
+					printf("Process not created\n");
+				}
+			}
+			else{
+				printf("No such process\n");
+			}
+			char * line = NULL;
+			size_t len = 0;
+			while(getline(&line, &len, file) != -1){
+				printf("%s", line);
+			}
 		}
 		
 	}
