@@ -29,65 +29,21 @@
   i.e. replace "[Full name]" and "[netid]" with your full name and netid.
   */
   
-
-
 /** @file alloc.c */
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
-#define BLOCK_SIZE 24;
 
-typedef struct mem_list
-{
-	//void * addr;
+
+//def of the node in general memory double linked list
+typedef struct _entry_t{
+	//void *ptr;
 	size_t size;
-	//int free;
-	struct mem_list * next;
-	struct mem_list * prev;
-	char data[1];
-} mem_list;
+	struct _entry_t *next;
+    struct _entry_t *prev;
+}_entry_t;
 
-
-//void split(mem_list *, size_t);
-size_t align8(size_t );
-int valid_addr(void * );
-mem_list * get(void * );
-//mem_list * combine(mem_list *);
-
-mem_list * head = NULL;
-mem_list * tail = NULL;
-void * start = NULL;
-void * end = NULL;
-/*
-void split(mem_list * chosen, size_t s){
-
-	mem_list * n = NULL;
-	n = chosen->addr + s;
-	n->addr = n + BLOCK_SIZE;
-	n->prev = chosen;
-	n->next = chosen->next;
-	chosen->next = n;
-	n->size = chosen->size - s - BLOCK_SIZE;
-
-	chosen->size = s;
-	if(n->next != NULL){
-		n->next->prev = n;
-	}
-		
-	if(chosen == tail){
-		tail = n;
-		//tail->next = NULL;
-		//brk(n);
-	}
-	
-}
-*/
-size_t align8(size_t s){
-	if((s & 0x7) == 0)
-		return s;
-	return ((s>>3) + 1) << 3;
-}
 /**
  * Allocate space for array in memory
  * 
@@ -113,11 +69,12 @@ size_t align8(size_t s){
  */
 void *calloc(size_t num, size_t size)
 {
-	void * ptr = malloc(num * size);      // allocate memory
-	if(ptr != NULL){
-		size = align8(num*size); 
-		memset(ptr, 0x00, size);          // initialize to 0
-	}
+	/* Note: This function is complete. You do not need to modify it. */
+	void *ptr = malloc(num * size);
+	
+	if (ptr)
+		memset(ptr, 0x00, num * size);
+
 	return ptr;
 }
 
@@ -143,41 +100,48 @@ void *calloc(size_t num, size_t size)
  *
  * @see http://www.cplusplus.com/reference/clibrary/cstdlib/malloc/
  */
-void *malloc(size_t size){
-	size_t k = BLOCK_SIZE;
-	if(head == NULL){                   // if free list not used, initialize it
-		
-		head = sbrk(k);
-		tail = sbrk(k);
-		head->size = 0;
-		tail->size = 0;
-		head->prev = NULL;
-		tail->next = NULL;
-		head->next = tail;
-		tail->prev = head;
-		start = sbrk(0) + BLOCK_SIZE;
-		end = start;
-	}
-	//printf("%ld", sizeof(mem_list));
-	mem_list * chosen = head;
 
-	size = align8(size);
-	while(chosen != tail){           // search for the suitable node in the free list
-		if(chosen->size >= size){        //remove suitable node from free list
-			chosen->prev->next = chosen->next;
-			chosen->next->prev = chosen->prev;
-			void * addr = (void *)chosen + BLOCK_SIZE; 
-			return addr;
-		}
-		chosen = chosen->next;
-	}
-	chosen = sbrk(k);                 // otherwise allocate new memory
-	chosen->next = NULL;
-	chosen->prev = NULL;
-	chosen->size = size;
-	end = sbrk(size);
-	void * addr = (void *)chosen + BLOCK_SIZE;	
-	return addr;
+
+
+_entry_t *curr=NULL;
+_entry_t *heat=NULL;
+_entry_t *tail=NULL;
+
+void *malloc(size_t size)
+{// first traverse the linked list of free blocks
+        if(!heat){
+            heat=sbrk(sizeof(_entry_t));//heat of the linked list of free blocks
+            tail=sbrk(sizeof(_entry_t));
+            heat->size=0;
+            tail->size=0;
+            heat->next=tail;
+            tail->prev=heat;
+        }
+
+        curr=heat;
+        while(curr!=tail){
+            if(curr->size>=size){//disconnect this node 
+                    curr->prev->next=curr->next;
+                curr->next->prev=curr->prev;
+        
+
+                void* t=(void*)curr+sizeof(_entry_t);
+                return t;
+            }else{
+                curr=curr->next;
+            }
+        }
+    //no suitable free blocks
+    _entry_t* temp=sbrk(sizeof(_entry_t));
+    //initiaize temp
+    temp->next=NULL;
+    temp->prev=NULL;
+    //temp->ptr=sbrk(size);//(void*)temp+sizeof(_entry_t);
+    temp->size=size;
+    sbrk(size);
+
+    //allocate actual user requst memory   	
+    return (void*)temp+sizeof(_entry_t);	
 }
 
 
@@ -197,48 +161,18 @@ void *malloc(size_t size){
  *    calloc() or realloc() to be deallocated.  If a null pointer is
  *    passed as argument, no action occurs.
  */
- mem_list * get(void * t){       // this function return mem_list contains t 
- 	return (void*)t-BLOCK_SIZE;	
- }
- 
-
- int valid_addr(void * t){
- 	if(head){
- 		if(t >= start && t <= end)
- 			return t == get(t)->data;
- 	}
- 	return 0;
- }
- 
- /*
- mem_list * combine(mem_list * t){
- 	if(t->next && t->next->free){
- 		t->size += BLOCK_SIZE + t->next->size;
- 		t->next = t->next->next;
- 		if(t->next){
- 			t->next->prev = t;
- 		}
- 	}
- 	return t;
- }
- */
- 
 void free(void *ptr)
 {
 	// "If a null pointer is passed as argument, no action occurs."
-	if (!ptr)
-		return;
-	
-	if(!valid_addr(ptr))
-		return;
-	
-	mem_list * temp = get(ptr);  // get the address of the node
-	temp->prev = tail->prev;    // add the node to the free list
-	temp->prev->next = temp;
-	tail->prev = temp;
-	temp->next = tail;
+		//not a valid address just return
 
-	return;
+	if (ptr==NULL) return;
+
+    _entry_t* temp=((void*)ptr)-sizeof(_entry_t);
+     temp->prev=tail->prev;
+    tail->prev->next=temp;
+    tail->prev=temp;
+    temp->next=tail;    
 }
 
 
@@ -289,27 +223,33 @@ void free(void *ptr)
  */
 void *realloc(void *ptr, size_t size)
 {
- // Optimization hint: Suppose size is a bit less than your existing allocation...
- 
- 	if(size <= 0){                  // check the size
- 		free(ptr);
- 		return NULL;
- 	}
- 	
- 	if(ptr == NULL){                // check the null pointer
- 		return malloc(size);
- 	}
- 	
- 	if(!valid_addr(ptr))           // check whether the pointer is valid
- 		return malloc(size);
- 	
- 	mem_list * t = get(ptr);        // if current node is big enough use it
-	if(t->size >= size){
-		return ptr;
+	 // "In case that ptr is NULL, the function behaves exactly as malloc()"
+	if (ptr==NULL)
+		return malloc(size);
+
+	 // "In case that the size is 0, the memory previously allocated in ptr
+	 //  is deallocated as if a call to free() was made, and a NULL pointer
+	 //  is returned."
+	if (size==0)
+	{
+		free(ptr);
+		return NULL;
 	}
-	void * new_ptr = malloc(size);     // otherwise alloc new memory
+
+
+    _entry_t* temp=(void*)ptr-sizeof(_entry_t);
+			//if(temp->size>=size)//memory here is big enough
+			//	return curr->ptr;
+			// not enought memory
+    if(temp->size>=size)
+        return ptr;
 	
-	memcpy(new_ptr, ptr, t->size);
-	free(ptr);							// free the former node
-	return new_ptr;
+    void* result=malloc(size);
+	memcpy(result,ptr,temp->size);
+	free(ptr);
+	return result;
+			
+		
+	
+
 }
