@@ -309,10 +309,11 @@ void *realloc(void *ptr, size_t size)
 	}
 	void * new_ptr = malloc(size);     // otherwise alloc new memory
 	mem_list * n = get(new_ptr);
+	/*
 	size_t i;
 	size_t * dst = (size_t *)t;
 	size_t * src = (size_t *)n;
-	/*
+	
 	for(i = 0; i*8<t->size && i*8<n->size; i++){
  		dst[i] = src[i];
  	}
