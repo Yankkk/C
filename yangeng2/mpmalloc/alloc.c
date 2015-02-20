@@ -151,8 +151,8 @@ void *malloc(size_t size){
 		tail = sbrk(k);
 		head->size = 0;
 		tail->size = 0;
-		head->prev = NULL;
-		tail->next = NULL;
+		//head->prev = NULL;
+		//tail->next = NULL;
 		head->next = tail;
 		tail->prev = head;
 		start = sbrk(0) + BLOCK_SIZE;
