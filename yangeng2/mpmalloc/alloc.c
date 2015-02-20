@@ -57,6 +57,7 @@ mem_list * get(void * );
 
 mem_list * head = NULL;
 mem_list * tail = NULL;
+mem_list * block = NULL;
 //void * start = NULL;
 //void * end = NULL;
 /*
@@ -157,19 +158,20 @@ void *malloc(size_t size){
 		tail->prev = head;
 		
 	}
-	mem_list * chosen = head;
+	block = head;
 
 	//size = align8(size);
-	while(chosen != tail){           // search for the suitable node in the free list
-		if(chosen->size >= size){        //remove suitable node from free list
-			chosen->prev->next = chosen->next;
-			chosen->next->prev = chosen->prev;
-			void * addr = (void *)chosen + BLOCK_SIZE; 
+	while(block != tail){           // search for the suitable node in the free list
+		if(block->size >= size){        //remove suitable node from free list
+			block->prev->next = block->next;
+			block->next->prev = block->prev;
+			void * addr = (void *)block + BLOCK_SIZE; 
 			return addr;
 		}
-		chosen = chosen->next;
+		block = block->next;
 	}
 	
+	mem_list * chosen = NULL;
 	chosen = sbrk(k);                 // otherwise allocate new memory
 	chosen->next = NULL;
 	chosen->prev = NULL;
