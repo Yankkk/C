@@ -115,7 +115,7 @@ void *calloc(size_t num, size_t size)
 {
 	void * ptr = malloc(num * size);      // allocate memory
 	if(ptr != NULL){
-		//size = align8(num*size); 
+		size = align8(num*size); 
 		memset(ptr, 0x00, size * num);          // initialize to 0
 	}
 	return ptr;
@@ -161,7 +161,7 @@ void *malloc(size_t size){
 	//printf("%ld", sizeof(mem_list));
 	mem_list * chosen = head;
 
-	//size = align8(size);
+	size = align8(size);
 	while(chosen != tail){           // search for the suitable node in the free list
 		if(chosen->size >= size){        //remove suitable node from free list
 			chosen->prev->next = chosen->next;
@@ -228,10 +228,10 @@ void free(void *ptr)
 	// "If a null pointer is passed as argument, no action occurs."
 	if (!ptr)
 		return;
-	/*
+	
 	if(!valid_addr(ptr))
 		return;
-	*/
+	
 	mem_list * temp = get(ptr);  // get the address of the node
 	temp->prev = tail->prev;    // add the node to the free list
 	temp->prev->next = temp;
@@ -299,15 +299,24 @@ void *realloc(void *ptr, size_t size)
  	if(ptr == NULL){                // check the null pointer
  		return malloc(size);
  	}
- 	/*
+ 	
  	if(!valid_addr(ptr))           // check whether the pointer is valid
  		return malloc(size);
- 	*/
+ 	
  	mem_list * t = get(ptr);        // if current node is big enough use it
 	if(t->size >= size){
 		return ptr;
 	}
 	void * new_ptr = malloc(size);     // otherwise alloc new memory
+	mem_list * n = get(new_ptr);
+	size_t i;
+	size_t * dst = (size_t *)t;
+	size_t * src = (size_t *)n;
+	/*
+	for(i = 0; i*8<t->size && i*8<n->size; i++){
+ 		dst[i] = src[i];
+ 	}
+ 	*/
 	memcpy(new_ptr, ptr, t->size);
 	free(ptr);							// free the former node
 	return new_ptr;
