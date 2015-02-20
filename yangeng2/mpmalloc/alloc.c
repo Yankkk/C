@@ -36,68 +36,34 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
-#define BLOCK_SIZE sizeof(mem_list);
+#define BLOCK_SIZE 24;
 
 typedef struct mem_list
 {
-	void * addr;
+	//void * addr;
 	size_t size;
-	int free;
+	//int free;
 	struct mem_list * next;
 	struct mem_list * prev;
 	
 } mem_list;
 
-mem_list * find_block( size_t );
-mem_list * extend_heap(mem_list *, size_t );
-void split(mem_list *, size_t);
+
+//void split(mem_list *, size_t);
 size_t align8(size_t );
-int valid_addr(void * );
+//int valid_addr(void * );
 mem_list * get(void * );
-mem_list * combine(mem_list *);
+//mem_list * combine(mem_list *);
 
 mem_list * head = NULL;
 mem_list * tail = NULL;
 
-
-mem_list * find_block(size_t size){
-	mem_list * t = head;
-	while(t){
-		if(t->free && (t->size >= size)){
-			return t;
-		}
-		t = t->next;
-	}
-	return t;
-}
-
-mem_list * extend_heap(mem_list * last, size_t size){
-	mem_list * t;
-	
-	t = sbrk(40);
-	t->addr = sbrk(0);
-	
-	if(sbrk(size) == (void *)-1)
-		return NULL;
-		
-	t->size = size;
-	t->next = NULL;
-	if(last){
-		last->next = t;
-		t->prev = last;
-		
-	}
-	t->free = 0;
-	tail = t;
-	return t->addr;
-}
-
+/*
 void split(mem_list * chosen, size_t s){
 
 	mem_list * n = NULL;
 	n = chosen->addr + s;
 	n->addr = n + BLOCK_SIZE;
-	n->free = 1;
 	n->prev = chosen;
 	n->next = chosen->next;
 	chosen->next = n;
@@ -106,19 +72,16 @@ void split(mem_list * chosen, size_t s){
 	chosen->size = s;
 	if(n->next != NULL){
 		n->next->prev = n;
-		if(n->next->free){
-			combine(n);
-		}
 	}
 		
-	if(n->next == NULL){
+	if(chosen == tail){
 		tail = n;
-		tail->next = NULL;
+		//tail->next = NULL;
 		//brk(n);
 	}
 	
 }
-
+*/
 size_t align8(size_t s){
 	if((s & 0x7) == 0)
 		return s;
@@ -149,10 +112,10 @@ size_t align8(size_t s){
  */
 void *calloc(size_t num, size_t size)
 {
-	void * ptr = malloc(num * size);
-	if(ptr){
-		size_t s = align8(num*size);
-		memset(ptr, 0x00, s);
+	void * ptr = malloc(num * size);      // allocate memory
+	if(ptr != NULL){
+		size = align8(num*size); 
+		memset(ptr, 0x00, size);          // initialize to 0
 	}
 	return ptr;
 }
@@ -180,57 +143,38 @@ void *calloc(size_t num, size_t size)
  * @see http://www.cplusplus.com/reference/clibrary/cstdlib/malloc/
  */
 void *malloc(size_t size){
-	
-	mem_list * p = head;
-	mem_list * chosen = NULL;
-	mem_list * n = NULL;
-	size_t s = align8(size);
-	//size_t s = size;
-	while(p!= NULL){
-		if(s < 512){
-			if(p->free){
-				if(!chosen || chosen->size > p->size){
-					chosen = p;
-				}
-			}
-		}
-		else{
-			if(p->free && (p->size >= s)){
-				chosen = p;
-				break;
-			}
-		}
-		p = p->next;
-	}
-	if(chosen){
-		chosen->free = 0;
-		size_t k = BLOCK_SIZE + 8;
+	size_t k = BLOCK_SIZE;
+	if(head == NULL){                   // if free list not used, initialize it
 		
-		if(chosen->size-s >= k){
-			//printf("%ld\n", chosen->size-s);
-			//split(chosen, s);
+		head = sbrk(k);
+		tail = sbrk(k);
+		head->size = 0;
+		tail->size = 0;
+		head->prev = NULL;
+		tail->next = NULL;
+		head->next = tail;
+		tail->prev = head;
+	}
+	//printf("%ld", sizeof(mem_list));
+	mem_list * chosen = head;
+
+	size = align8(size);
+	while(chosen != tail){           // search for the suitable node in the free list
+		if(chosen->size >= size){        //remove suitable node from free list
+			chosen->prev->next = chosen->next;
+			chosen->next->prev = chosen->prev;
+			void * addr = (void *)chosen + BLOCK_SIZE; 
+			return addr;
 		}
-	
-		return chosen->addr;
+		chosen = chosen->next;
 	}
-	chosen = sbrk(0);
-	sbrk(sizeof(mem_list));
-	chosen->addr = sbrk(0);
-	if(sbrk(s) == (void*)-1){
-		return NULL;
-	}
-	if(head == NULL && tail == NULL)
-		head = chosen;
-		
-	chosen->size = s;
-	chosen->free = 0;
+	chosen = sbrk(k);                 // otherwise allocate new memory
 	chosen->next = NULL;
-	chosen->prev = tail;
-	if(tail != NULL)
-		tail->next = chosen;
-	tail = chosen;
-	
-	return chosen->addr;
+	chosen->prev = NULL;
+	chosen->size = size;
+	sbrk(size);
+	void * addr = (void *)chosen + BLOCK_SIZE;	
+	return addr;
 }
 
 
@@ -250,10 +194,11 @@ void *malloc(size_t size){
  *    calloc() or realloc() to be deallocated.  If a null pointer is
  *    passed as argument, no action occurs.
  */
- mem_list * get(void * t){
- 	return t-BLOCK_SIZE;	
+ mem_list * get(void * t){       // this function return mem_list contains t 
+ 	return (void*)t-BLOCK_SIZE;	
  }
  
+ /*
  int valid_addr(void * t){
  	if(head){
  		if(t > head->addr && t <= tail->addr)
@@ -261,7 +206,8 @@ void *malloc(size_t size){
  	}
  	return 0;
  }
- 
+ */
+ /*
  mem_list * combine(mem_list * t){
  	if(t->next && t->next->free){
  		t->size += BLOCK_SIZE + t->next->size;
@@ -272,29 +218,19 @@ void *malloc(size_t size){
  	}
  	return t;
  }
+ */
  
 void free(void *ptr)
 {
 	// "If a null pointer is passed as argument, no action occurs."
 	if (!ptr)
 		return;
-	mem_list * temp;
-	if(valid_addr(ptr)){
-		temp = get(ptr);
-		temp->free = 1;
-		if(temp->next && temp->next->free){
-			combine(temp);
-		}
-		if(temp->prev && temp->prev->free){
-			temp = temp->prev;
-			combine(temp);
-		}
-		if(temp->next == NULL){
-			tail = temp->prev;
-			tail->next = NULL;
-			brk(temp);
-		}
-	}
+	mem_list * temp = get(ptr);  // get the address of the node
+	temp->prev = tail->prev;    // add the node to the free list
+	temp->prev->next = temp;
+	tail->prev = temp;
+	temp->next = tail;
+
 	return;
 }
 
@@ -348,46 +284,21 @@ void *realloc(void *ptr, size_t size)
 {
  // Optimization hint: Suppose size is a bit less than your existing allocation...
  
- 	if(!size){
+ 	if(size <= 0){                  // check the size
  		free(ptr);
  		return NULL;
  	}
- 	size_t s = align8(size);
-  	void * new_ptr = NULL;
- 	if(!ptr)
- 		return malloc(s);
- 	mem_list * t = get(ptr);
- 	if(t->size >= s){
- 		size_t k = BLOCK_SIZE + 8;
- 		/*
- 		if(t->size-s > k){
- 			split(ptr, s);	
- 		}
- 		*/
- 		return ptr;
+ 	
+ 	if(ptr == NULL){                // check the null pointer
+ 		return malloc(size);
  	}
- 	if(t->next){
- 		size_t n = t->size + BLOCK_SIZE + t->next->size;
-		if(t->next->free && s <= n ){
-			combine(t);
-			return ptr;
-		}
+ 	
+ 	mem_list * t = get(ptr);        // if current node is big enough use it
+	if(t->size >= size){
+		return ptr;
 	}
- 	
- 	new_ptr = malloc(s);
- 	mem_list * n = get(new_ptr);
- 	
- 	if(new_ptr == NULL)
- 		return NULL;
- 	size_t i;
-
- 		//memcpy(new_ptr, ptr, t->size < s ? t->size : s);
- 	size_t * src = t->addr;
- 	size_t * dst = n->addr;
- 	for(i = 0; i*8<t->size && i*8<n->size; i++){
- 		dst[i] = src[i];
- 	}
- 	
- 	free(ptr);
+	void * new_ptr = malloc(size);     // otherwise alloc new memory
+	memcpy(new_ptr, ptr, t->size);
+	free(ptr);							// free the former node
 	return new_ptr;
 }
