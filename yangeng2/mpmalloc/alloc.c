@@ -165,7 +165,7 @@ void *malloc(size_t size){
 		if(block->size >= size){        //remove suitable node from free list
 			block->prev->next = block->next;
 			block->next->prev = block->prev;
-			void * addr = (void *)block + BLOCK_SIZE; 
+			void * addr = (void *)block + k; 
 			return addr;
 		}
 		block = block->next;
@@ -176,7 +176,7 @@ void *malloc(size_t size){
 	chosen->prev = NULL;
 	chosen->size = size;
 	sbrk(size);
-	void * addr = (void *)chosen + BLOCK_SIZE;	
+	void * addr = (void *)chosen + k;	
 	return addr;
 }
 
