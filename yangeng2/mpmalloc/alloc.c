@@ -45,7 +45,7 @@ typedef struct mem_list
 	//int free;
 	struct mem_list * next;
 	struct mem_list * prev;
-	
+	char data[1];
 } mem_list;
 
 
@@ -151,8 +151,8 @@ void *malloc(size_t size){
 		tail = sbrk(k);
 		head->size = 0;
 		tail->size = 0;
-		//head->prev = NULL;
-		//tail->next = NULL;
+		head->prev = NULL;
+		tail->next = NULL;
 		head->next = tail;
 		tail->prev = head;
 		start = sbrk(0) + BLOCK_SIZE;
@@ -205,7 +205,7 @@ void *malloc(size_t size){
  int valid_addr(void * t){
  	if(head){
  		if(t >= start && t <= end)
- 			return 1;
+ 			return t == get(t)->data;
  	}
  	return 0;
  }
@@ -228,7 +228,8 @@ void free(void *ptr)
 	// "If a null pointer is passed as argument, no action occurs."
 	if (!ptr)
 		return;
-	
+	if(!valid_addr(ptr))
+		return;
 	mem_list * temp = get(ptr);  // get the address of the node
 	temp->prev = tail->prev;    // add the node to the free list
 	temp->prev->next = temp;
