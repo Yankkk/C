@@ -201,7 +201,7 @@ void *malloc(size_t size){
  	return (void*)t-BLOCK_SIZE;	
  }
  
-/**
+
  int valid_addr(void * t){
  	if(head){
  		if(t >= start && t <= end)
@@ -209,7 +209,7 @@ void *malloc(size_t size){
  	}
  	return 0;
  }
- */
+ 
  /*
  mem_list * combine(mem_list * t){
  	if(t->next && t->next->free){
@@ -228,10 +228,10 @@ void free(void *ptr)
 	// "If a null pointer is passed as argument, no action occurs."
 	if (!ptr)
 		return;
-	/**
+	
 	if(!valid_addr(ptr))
 		return;
-	*/
+	
 	mem_list * temp = get(ptr);  // get the address of the node
 	temp->prev = tail->prev;    // add the node to the free list
 	temp->prev->next = temp;
@@ -299,10 +299,10 @@ void *realloc(void *ptr, size_t size)
  	if(ptr == NULL){                // check the null pointer
  		return malloc(size);
  	}
- 	/*
+ 	
  	if(!valid_addr(ptr))           // check whether the pointer is valid
  		return malloc(size);
- 	*/
+ 	
  	mem_list * t = get(ptr);        // if current node is big enough use it
 	if(t->size >= size){
 		return ptr;
