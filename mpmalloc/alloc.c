@@ -115,8 +115,8 @@ void *calloc(size_t num, size_t size)
 {
 	void * ptr = malloc(num * size);      // allocate memory
 	if(ptr != NULL){
-		size = align8(num*size); 
-		memset(ptr, 0x00, size);          // initialize to 0
+		//size = align8(num*size); 
+		memset(ptr, 0x00, size * num);          // initialize to 0
 	}
 	return ptr;
 }
@@ -161,7 +161,7 @@ void *malloc(size_t size){
 	//printf("%ld", sizeof(mem_list));
 	mem_list * chosen = head;
 
-	size = align8(size);
+	//size = align8(size);
 	while(chosen != tail){           // search for the suitable node in the free list
 		if(chosen->size >= size){        //remove suitable node from free list
 			chosen->prev->next = chosen->next;
