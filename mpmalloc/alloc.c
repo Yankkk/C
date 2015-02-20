@@ -171,8 +171,7 @@ void *malloc(size_t size){
 		block = block->next;
 	}
 	
-	mem_list * chosen = NULL;
-	chosen = sbrk(k);                 // otherwise allocate new memory
+	mem_list * chosen = sbrk(k);                 // otherwise allocate new memory
 	chosen->next = NULL;
 	chosen->prev = NULL;
 	chosen->size = size;
@@ -230,7 +229,7 @@ void free(void *ptr)
 	if (!ptr)
 		return;
 	
-	mem_list * temp = get(ptr);  // get the address of the node
+	mem_list * temp = ptr - sizeof(mem_list);  // get the address of the node
 	temp->prev = tail->prev;    // add the node to the free list
 	tail->prev->next = temp;
 	tail->prev = temp;
@@ -296,7 +295,7 @@ void *realloc(void *ptr, size_t size)
  		return NULL;
  	}
  	
- 	mem_list * t = get(ptr);        // if current node is big enough use it
+ 	mem_list * t = ptr - sizeof(mem_list);        // if current node is big enough use it
 	if(t->size >= size){
 		return ptr;
 	}
