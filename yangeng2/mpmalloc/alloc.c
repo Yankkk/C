@@ -57,7 +57,8 @@ mem_list * get(void * );
 
 mem_list * head = NULL;
 mem_list * tail = NULL;
-
+void * start = NULL;
+void * end = NULL;
 /*
 void split(mem_list * chosen, size_t s){
 
@@ -154,6 +155,8 @@ void *malloc(size_t size){
 		tail->next = NULL;
 		head->next = tail;
 		tail->prev = head;
+		start = sbrk(0) + BLOCK_SIZE;
+		end = start;
 	}
 	//printf("%ld", sizeof(mem_list));
 	mem_list * chosen = head;
@@ -172,7 +175,7 @@ void *malloc(size_t size){
 	chosen->next = NULL;
 	chosen->prev = NULL;
 	chosen->size = size;
-	sbrk(size);
+	end = sbrk(size);
 	void * addr = (void *)chosen + BLOCK_SIZE;	
 	return addr;
 }
@@ -201,7 +204,7 @@ void *malloc(size_t size){
 
  int valid_addr(void * t){
  	if(head){
- 		if(t > (void *)head && t <= sbrk(0))
+ 		if(t >= start && t <= end)
  			return 1;
  	}
  	return 0;
