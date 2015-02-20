@@ -51,7 +51,7 @@ typedef struct mem_list
 
 //void split(mem_list *, size_t);
 size_t align8(size_t );
-//int valid_addr(void * );
+int valid_addr(void * );
 mem_list * get(void * );
 //mem_list * combine(mem_list *);
 
@@ -198,15 +198,15 @@ void *malloc(size_t size){
  	return (void*)t-BLOCK_SIZE;	
  }
  
- /*
+
  int valid_addr(void * t){
  	if(head){
- 		if(t > head->addr && t <= tail->addr)
- 			return t == (get(t)->addr);
+ 		if(t > (void *)head && t <= sbrk(0))
+ 			return 1;
  	}
  	return 0;
  }
- */
+ 
  /*
  mem_list * combine(mem_list * t){
  	if(t->next && t->next->free){
@@ -225,6 +225,7 @@ void free(void *ptr)
 	// "If a null pointer is passed as argument, no action occurs."
 	if (!ptr)
 		return;
+	
 	mem_list * temp = get(ptr);  // get the address of the node
 	temp->prev = tail->prev;    // add the node to the free list
 	temp->prev->next = temp;
@@ -292,7 +293,9 @@ void *realloc(void *ptr, size_t size)
  	if(ptr == NULL){                // check the null pointer
  		return malloc(size);
  	}
- 	
+ 	if(!valid_addr(ptr))           // check whether the pointer is valid
+ 		return malloc(size);
+ 		
  	mem_list * t = get(ptr);        // if current node is big enough use it
 	if(t->size >= size){
 		return ptr;
