@@ -49,7 +49,9 @@ typedef struct _entry_t{
 
 //void split(mem_list *, size_t);
 //size_t align8(size_t );
-
+//int valid_addr(void * );
+//mem_list * get(void * );
+//mem_list * combine(mem_list *);
 
 /*
 size_t align8(size_t s){
@@ -195,6 +197,34 @@ void *malloc(size_t size)
  *    calloc() or realloc() to be deallocated.  If a null pointer is
  *    passed as argument, no action occurs.
  */
+/* 
+  mem_list * get(void * t){       // this function return mem_list contains t 
+ 	return (void*)t-BLOCK_SIZE;	
+ }
+ 
+
+ int valid_addr(void * t){
+ 	if(head){
+ 		if(t >= start && t <= end)
+ 			return t == get(t)->data;
+ 	}
+ 	return 0;
+ }
+ */
+ /*
+ mem_list * combine(mem_list * t){
+ 	if(t->next && t->next->free){
+ 		t->size += BLOCK_SIZE + t->next->size;
+ 		t->next = t->next->next;
+ 		if(t->next){
+ 			t->next->prev = t;
+ 		}
+ 	}
+ 	return t;
+ }
+ */
+ 
+ 
 void free(void *ptr)
 {
 	if (ptr==NULL) return;                    // check for NULL pointer
