@@ -38,11 +38,11 @@
 
 
 
-typedef struct _entry_t{
+typedef struct mem_list{
 	size_t size;
-	struct _entry_t *next;
-    struct _entry_t *prev;
-}_entry_t;
+	struct mem_list *next;
+    struct mem_list *prev;
+}mem_list;
 
 /**
  * Allocate space for array in memory
@@ -102,15 +102,15 @@ void *calloc(size_t num, size_t size)
 
 
 
-_entry_t *curr=NULL;
-_entry_t *heat=NULL;
-_entry_t *tail=NULL;
+mem_list *curr=NULL;
+mem_list *heat=NULL;
+mem_list *tail=NULL;
 
 void *malloc(size_t size)
 {
         if(!heat){
-            heat=sbrk(sizeof(_entry_t));
-            tail=sbrk(sizeof(_entry_t));
+            heat=sbrk(sizeof(mem_list));
+            tail=sbrk(sizeof(mem_list));
             heat->size=0;
             tail->size=0;
             heat->next=tail;
@@ -122,14 +122,14 @@ void *malloc(size_t size)
             if(curr->size>=size){
                     curr->prev->next=curr->next;
                 curr->next->prev=curr->prev;
-                void* t=(void*)curr+sizeof(_entry_t);
+                void* t=(void*)curr+sizeof(mem_list);
                 return t;
             }else{
                 curr=curr->next;
             }
         }
  
-    _entry_t* temp=sbrk(sizeof(_entry_t));
+    mem_list* temp=sbrk(sizeof(mem_list));
     
     temp->next=NULL;
     temp->prev=NULL;
@@ -137,7 +137,7 @@ void *malloc(size_t size)
     if(sbrk(size) == (void*)-1)
     	return NULL;
 
-    return (void*)temp+sizeof(_entry_t);	
+    return (void*)temp+sizeof(mem_list);	
 }
 
 
@@ -162,7 +162,7 @@ void free(void *ptr)
 	
 	if (ptr==NULL) return;
 
-    _entry_t* temp=((void*)ptr)-sizeof(_entry_t);
+    mem_list* temp=((void*)ptr)-sizeof(mem_list);
      temp->prev=tail->prev;
     tail->prev->next=temp;
     tail->prev=temp;
@@ -226,7 +226,7 @@ void *realloc(void *ptr, size_t size)
 	}
 
 
-    _entry_t* temp=(void*)ptr-sizeof(_entry_t);
+    mem_list* temp=(void*)ptr-sizeof(mem_list);
     if(temp->size>=size)
         return ptr;
 	
