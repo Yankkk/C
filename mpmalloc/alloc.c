@@ -173,9 +173,8 @@ void *malloc(size_t size)
                 void* t=(void*)curr+sizeof(mem_list);
                 return t;
             }
-            else{
-                curr=curr->next;
-            }
+            curr=curr->next;
+            
         }
 
     mem_list* temp=sbrk(sizeof(mem_list));               // no suitable block
