@@ -38,13 +38,13 @@
 
 
 
-typedef struct mem_list{
-	// void* addr;
-	// int free;
+typedef struct _entry_t{
+	//void *ptr;
 	size_t size;
-	struct mem_list *next;
-    struct mem_list *prev;
-}mem_list;
+	struct _entry_t *next;
+    struct _entry_t *prev;
+}_entry_t;
+
 
 //void split(mem_list *, size_t);
 //size_t align8(size_t );
@@ -109,14 +109,13 @@ void split(mem_list * chosen, size_t s){
  */
 void *calloc(size_t num, size_t size)
 {
-	void *new_ptr = malloc(num*size);
+	void *ptr = malloc(num * size);
 	
-	if (new_ptr)
-		memset(new_ptr, 0x00, size*num);
+	if (ptr)
+		memset(ptr, 0x00, num * size);
 
-	return new_ptr;
+	return ptr;
 }
-
 
 /**
  * Allocate memory block
@@ -141,42 +140,41 @@ void *calloc(size_t num, size_t size)
  */
  
  
-mem_list *curr=NULL;
-mem_list *head=NULL;
-mem_list *tail=NULL;
-
+_entry_t *curr=NULL;
+_entry_t *heat=NULL;
+_entry_t *tail=NULL;
 
 void *malloc(size_t size)
 {
-         if(!head){
-            head=sbrk(sizeof(mem_list));
-            tail=sbrk(sizeof(mem_list));
-            head->size=0;
+        if(!heat){
+            heat=sbrk(sizeof(_entry_t));
+            tail=sbrk(sizeof(_entry_t));
+            heat->size=0;
             tail->size=0;
-            head->next=tail;
-            tail->prev=head;
+            heat->next=tail;
+            tail->prev=heat;
         }
 
-        curr=head;
+        curr=heat;
         while(curr!=tail){
             if(curr->size>=size){
                     curr->prev->next=curr->next;
                 curr->next->prev=curr->prev;
         
 
-                void* t=(void*)curr+sizeof(mem_list);
+                void* t=(void*)curr+sizeof(_entry_t);
                 return t;
             }else{
                 curr=curr->next;
             }
         }
 
-    mem_list* temp=sbrk(sizeof(mem_list));
+    _entry_t* temp=sbrk(sizeof(_entry_t));
     temp->next=NULL;
     temp->prev=NULL;
     temp->size=size;
     sbrk(size);
-    return (void*)temp+sizeof(mem_list);	
+    return (void*)temp+sizeof(_entry_t);	
 }
 
 
@@ -198,10 +196,9 @@ void *malloc(size_t size)
  */
 void free(void *ptr)
 {
-	
 	if (ptr==NULL) return;
 
-    mem_list* temp=((void*)ptr)-sizeof(mem_list);
+    _entry_t* temp=((void*)ptr)-sizeof(_entry_t);
      temp->prev=tail->prev;
     tail->prev->next=temp;
     tail->prev=temp;
@@ -256,7 +253,8 @@ void free(void *ptr)
  */
 void *realloc(void *ptr, size_t size)
 {
-	if (ptr==NULL)                          
+
+	if (ptr==NULL)
 		return malloc(size);
 
 	if (size==0)
@@ -266,7 +264,7 @@ void *realloc(void *ptr, size_t size)
 	}
 
 
-    mem_list* temp=(void*)ptr-sizeof(mem_list);
+    _entry_t* temp=(void*)ptr-sizeof(_entry_t);
     if(temp->size>=size)
         return ptr;
 	
@@ -274,8 +272,5 @@ void *realloc(void *ptr, size_t size)
 	memcpy(result,ptr,temp->size);
 	free(ptr);
 	return result;
-			
-		
-	
-
 }
+
