@@ -108,35 +108,33 @@ mem_list *tail=NULL;
 
 void *malloc(size_t size)
 {
-        if(!head){                            // initialize free list
+        if(!head){
             head=sbrk(sizeof(mem_list));
             tail=sbrk(sizeof(mem_list));
             head->size=0;
             tail->size=0;
-            head->prev = NULL;
-            tail->next = NULL;
             head->next=tail;
             tail->prev=head;
         }
 
         curr=head;
-        while(curr!=tail){                         // find suitable block in free list
+        while(curr!=tail){
             if(curr->size>=size){
                 curr->prev->next=curr->next;
                 curr->next->prev=curr->prev;
-                return (void*)curr+sizeof(mem_list);
-                
+                void* t=(void*)curr+sizeof(mem_list);
+                return t;
             }else{
                 curr=curr->next;
             }
         }
  
-    mem_list* temp=sbrk(sizeof(mem_list));            // no suitable block
-    												// allocate new block					
+    mem_list* temp=sbrk(sizeof(mem_list));
+    
     temp->next=NULL;
     temp->prev=NULL;
     temp->size=size;
-    if(sbrk(size) == (void*)-1)                    // check whether allocate successfully
+    if(sbrk(size) == (void*)-1)
     	return NULL;
 
     return (void*)temp+sizeof(mem_list);	
@@ -162,9 +160,9 @@ void *malloc(size_t size)
 void free(void *ptr)
 {
 	
-	if (ptr==NULL) return;              // check for NULL pointer
+	if (ptr==NULL) return;
 
-    mem_list* temp=((void*)ptr)-sizeof(mem_list);         // add the block to free list
+    mem_list* temp=((void*)ptr)-sizeof(mem_list);
     temp->prev=tail->prev;
     tail->prev->next=temp;
     tail->prev=temp;
@@ -219,20 +217,20 @@ void free(void *ptr)
  */
 void *realloc(void *ptr, size_t size)
 {
-	if (ptr==NULL)                             // check for the NULL pointer
+	if (ptr==NULL)
 		return malloc(size);
-	if (size==0)                              	// check for 0 size
+	if (size==0)
 	{
 		free(ptr);
 		return NULL;
 	}
 
 
-    mem_list* temp=(void*)ptr-sizeof(mem_list);     // find the block
-    if(temp->size>=size)                             // current block big enough use it
+    mem_list* temp=(void*)ptr-sizeof(mem_list);
+    if(temp->size>=size)
         return ptr;
 	
-    void* result=malloc(size);                       // allcate new block
+    void* result=malloc(size);
 	memcpy(result,ptr,temp->size);
 	free(ptr);
 	return result;
