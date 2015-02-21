@@ -103,21 +103,21 @@ void *calloc(size_t num, size_t size)
 
 
 mem_list *curr=NULL;
-mem_list *heat=NULL;
+mem_list *head=NULL;
 mem_list *tail=NULL;
 
 void *malloc(size_t size)
 {
-        if(!heat){
-            heat=sbrk(sizeof(mem_list));
+        if(!head){
+            head=sbrk(sizeof(mem_list));
             tail=sbrk(sizeof(mem_list));
-            heat->size=0;
+            head->size=0;
             tail->size=0;
-            heat->next=tail;
-            tail->prev=heat;
+            head->next=tail;
+            tail->prev=head;
         }
 
-        curr=heat;
+        curr=head;
         while(curr!=tail){
             if(curr->size>=size){
                     curr->prev->next=curr->next;
