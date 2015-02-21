@@ -172,7 +172,8 @@ void *malloc(size_t size)
 
                 void* t=(void*)curr+sizeof(mem_list);
                 return t;
-            }else{
+            }
+            else{
                 curr=curr->next;
             }
         }
@@ -181,7 +182,8 @@ void *malloc(size_t size)
     temp->next=NULL;                                    // allocate new memory
     temp->prev=NULL;
     temp->size=size;
-    sbrk(size);
+    if(sbrk(size) == (void *)-1)
+    	return NULL;
     return (void*)temp+sizeof(mem_list);	
 }
 
