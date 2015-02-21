@@ -175,7 +175,9 @@ void *malloc(size_t size){
 	chosen->next = NULL;
 	chosen->prev = NULL;
 	chosen->size = size;
-	sbrk(size);
+	if(sbrk(size) == (void *)-1){
+		return NULL;
+	}
 	void * addr = (void *)chosen + k;	
 	return addr;
 }
