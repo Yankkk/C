@@ -36,14 +36,17 @@
 #include <unistd.h>
 #include <string.h>
 
-
-//def of the node in general memory double linked list
-typedef struct _entry_t{
-	//void *ptr;
+typedef struct mem_list
+{
+	//void * addr;
 	size_t size;
-	struct _entry_t *next;
-    struct _entry_t *prev;
-}_entry_t;
+	//int free;
+	struct mem_list * next;
+	struct mem_list * prev;
+	//char data[1];
+} mem_list;
+
+
 
 /**
  * Allocate space for array in memory
@@ -104,45 +107,46 @@ void *calloc(size_t num, size_t size)
 
 
 
-_entry_t *curr=NULL;
-_entry_t *heat=NULL;
-_entry_t *tail=NULL;
+mem_list *curr=NULL;
+mem_list *head=NULL;
+mem_list *tail=NULL;
 
 void *malloc(size_t size)
-{// first traverse the linked list of free blocks
-        if(!heat){
-            heat=sbrk(sizeof(_entry_t));//heat of the linked list of free blocks
-            tail=sbrk(sizeof(_entry_t));
-            heat->size=0;
+{
+        if(!head){
+            head=sbrk(sizeof(mem_list));    //heat of the linked list of free blocks
+            tail=sbrk(sizeof(mem_list));
+            head->size=0;
             tail->size=0;
-            heat->next=tail;
-            tail->prev=heat;
+            head->next=tail;
+            tail->prev=head;
         }
 
-        curr=heat;
+        curr=head;
         while(curr!=tail){
             if(curr->size>=size){//disconnect this node 
                     curr->prev->next=curr->next;
                 curr->next->prev=curr->prev;
         
 
-                void* t=(void*)curr+sizeof(_entry_t);
+                void* t=(void*)curr+sizeof(mem_list);
                 return t;
             }else{
                 curr=curr->next;
             }
         }
     //no suitable free blocks
-    _entry_t* temp=sbrk(sizeof(_entry_t));
+    mem_list* temp=sbrk(sizeof(mem_list));
     //initiaize temp
     temp->next=NULL;
     temp->prev=NULL;
-    //temp->ptr=sbrk(size);//(void*)temp+sizeof(_entry_t);
+    
     temp->size=size;
-    sbrk(size);
+    if(sbrk(size) == (void*)-1)
+    	return NULL;
 
-    //allocate actual user requst memory   	
-    return (void*)temp+sizeof(_entry_t);	
+   
+    return (void*)temp+sizeof(mem_list);	
 }
 
 
@@ -169,7 +173,7 @@ void free(void *ptr)
 
 	if (ptr==NULL) return;
 
-    _entry_t* temp=((void*)ptr)-sizeof(_entry_t);
+    mem_list* temp=((void*)ptr)-sizeof(mem_list);
      temp->prev=tail->prev;
     tail->prev->next=temp;
     tail->prev=temp;
@@ -224,13 +228,10 @@ void free(void *ptr)
  */
 void *realloc(void *ptr, size_t size)
 {
-	 // "In case that ptr is NULL, the function behaves exactly as malloc()"
+	 
 	if (ptr==NULL)
 		return malloc(size);
 
-	 // "In case that the size is 0, the memory previously allocated in ptr
-	 //  is deallocated as if a call to free() was made, and a NULL pointer
-	 //  is returned."
 	if (size==0)
 	{
 		free(ptr);
@@ -238,10 +239,8 @@ void *realloc(void *ptr, size_t size)
 	}
 
 
-    _entry_t* temp=(void*)ptr-sizeof(_entry_t);
-			//if(temp->size>=size)//memory here is big enough
-			//	return curr->ptr;
-			// not enought memory
+    mem_list* temp=(void*)ptr-sizeof(mem_list);
+			
     if(temp->size>=size)
         return ptr;
 	
