@@ -134,7 +134,8 @@ void *malloc(size_t size)
     temp->next=NULL;
     temp->prev=NULL;
     temp->size=size;
-    sbrk(size);
+    if(sbrk(size) == (void*)-1)
+    	return NULL;
 
     return (void*)temp+sizeof(_entry_t);	
 }
