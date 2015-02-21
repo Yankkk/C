@@ -39,10 +39,50 @@
 
 
 typedef struct mem_list{
+	// void* addr;
+	// int free;
 	size_t size;
 	struct mem_list *next;
     struct mem_list *prev;
 }mem_list;
+
+//void split(mem_list *, size_t);
+//size_t align8(size_t );
+
+
+/*
+size_t align8(size_t s){
+	if((s & 0x7) == 0)
+		return s;
+	return ((s>>3) + 1) << 3;
+}
+*/
+
+/*
+void split(mem_list * chosen, size_t s){
+
+	mem_list * n = NULL;
+	n = chosen->addr + s;
+	n->addr = n + BLOCK_SIZE;
+	n->prev = chosen;
+	n->next = chosen->next;
+	chosen->next = n;
+	n->size = chosen->size - s - BLOCK_SIZE;
+
+	chosen->size = s;
+	if(n->next != NULL){
+		n->next->prev = n;
+	}
+		
+	if(chosen == tail){
+		tail = n;
+		//tail->next = NULL;
+		//brk(n);
+	}
+	
+}
+*/
+
 
 /**
  * Allocate space for array in memory
@@ -69,12 +109,12 @@ typedef struct mem_list{
  */
 void *calloc(size_t num, size_t size)
 {
-	void *ptr = malloc(num * size);
+	void *new_ptr = malloc(num*size);
 	
-	if (ptr)
-		memset(ptr, 0x00, num * size);
+	if (new_ptr)
+		memset(new_ptr, 0x00, size*num);
 
-	return ptr;
+	return new_ptr;
 }
 
 
@@ -99,16 +139,16 @@ void *calloc(size_t num, size_t size)
  *
  * @see http://www.cplusplus.com/reference/clibrary/cstdlib/malloc/
  */
-
-
-
+ 
+ 
 mem_list *curr=NULL;
 mem_list *head=NULL;
 mem_list *tail=NULL;
 
+
 void *malloc(size_t size)
 {
-        if(!head){
+         if(!head){
             head=sbrk(sizeof(mem_list));
             tail=sbrk(sizeof(mem_list));
             head->size=0;
@@ -120,23 +160,22 @@ void *malloc(size_t size)
         curr=head;
         while(curr!=tail){
             if(curr->size>=size){
-                curr->prev->next=curr->next;
+                    curr->prev->next=curr->next;
                 curr->next->prev=curr->prev;
+        
+
                 void* t=(void*)curr+sizeof(mem_list);
                 return t;
             }else{
                 curr=curr->next;
             }
         }
- 
+
     mem_list* temp=sbrk(sizeof(mem_list));
-    
     temp->next=NULL;
     temp->prev=NULL;
     temp->size=size;
-    if(sbrk(size) == (void*)-1)
-    	return NULL;
-
+    sbrk(size);
     return (void*)temp+sizeof(mem_list);	
 }
 
@@ -163,7 +202,7 @@ void free(void *ptr)
 	if (ptr==NULL) return;
 
     mem_list* temp=((void*)ptr)-sizeof(mem_list);
-    temp->prev=tail->prev;
+     temp->prev=tail->prev;
     tail->prev->next=temp;
     tail->prev=temp;
     temp->next=tail;    
@@ -217,8 +256,9 @@ void free(void *ptr)
  */
 void *realloc(void *ptr, size_t size)
 {
-	if (ptr==NULL)
+	if (ptr==NULL)                          
 		return malloc(size);
+
 	if (size==0)
 	{
 		free(ptr);
