@@ -36,17 +36,13 @@
 #include <unistd.h>
 #include <string.h>
 
-typedef struct mem_list
-{
-	//void * addr;
+
+
+typedef struct _entry_t{
 	size_t size;
-	//int free;
-	struct mem_list * next;
-	struct mem_list * prev;
-	//char data[1];
-} mem_list;
-
-
+	struct _entry_t *next;
+    struct _entry_t *prev;
+}_entry_t;
 
 /**
  * Allocate space for array in memory
@@ -73,7 +69,6 @@ typedef struct mem_list
  */
 void *calloc(size_t num, size_t size)
 {
-	/* Note: This function is complete. You do not need to modify it. */
 	void *ptr = malloc(num * size);
 	
 	if (ptr)
@@ -107,46 +102,41 @@ void *calloc(size_t num, size_t size)
 
 
 
-mem_list *curr=NULL;
-mem_list *head=NULL;
-mem_list *tail=NULL;
+_entry_t *curr=NULL;
+_entry_t *heat=NULL;
+_entry_t *tail=NULL;
 
 void *malloc(size_t size)
 {
-        if(!head){
-            head=sbrk(sizeof(mem_list));    //heat of the linked list of free blocks
-            tail=sbrk(sizeof(mem_list));
-            head->size=0;
+        if(!heat){
+            heat=sbrk(sizeof(_entry_t));
+            tail=sbrk(sizeof(_entry_t));
+            heat->size=0;
             tail->size=0;
-            head->next=tail;
-            tail->prev=head;
+            heat->next=tail;
+            tail->prev=heat;
         }
 
-        curr=head;
+        curr=heat;
         while(curr!=tail){
-            if(curr->size>=size){//disconnect this node 
+            if(curr->size>=size){
                     curr->prev->next=curr->next;
                 curr->next->prev=curr->prev;
-        
-
-                void* t=(void*)curr+sizeof(mem_list);
+                void* t=(void*)curr+sizeof(_entry_t);
                 return t;
             }else{
                 curr=curr->next;
             }
         }
-    //no suitable free blocks
-    mem_list* temp=sbrk(sizeof(mem_list));
-    //initiaize temp
+ 
+    _entry_t* temp=sbrk(sizeof(_entry_t));
+    
     temp->next=NULL;
     temp->prev=NULL;
-    
     temp->size=size;
-    if(sbrk(size) == (void*)-1)
-    	return NULL;
+    sbrk(size);
 
-   
-    return (void*)temp+sizeof(mem_list);	
+    return (void*)temp+sizeof(_entry_t);	
 }
 
 
@@ -168,12 +158,10 @@ void *malloc(size_t size)
  */
 void free(void *ptr)
 {
-	// "If a null pointer is passed as argument, no action occurs."
-		//not a valid address just return
-
+	
 	if (ptr==NULL) return;
 
-    mem_list* temp=((void*)ptr)-sizeof(mem_list);
+    _entry_t* temp=((void*)ptr)-sizeof(_entry_t);
      temp->prev=tail->prev;
     tail->prev->next=temp;
     tail->prev=temp;
@@ -228,10 +216,8 @@ void free(void *ptr)
  */
 void *realloc(void *ptr, size_t size)
 {
-	 
 	if (ptr==NULL)
 		return malloc(size);
-
 	if (size==0)
 	{
 		free(ptr);
@@ -239,8 +225,7 @@ void *realloc(void *ptr, size_t size)
 	}
 
 
-    mem_list* temp=(void*)ptr-sizeof(mem_list);
-			
+    _entry_t* temp=(void*)ptr-sizeof(_entry_t);
     if(temp->size>=size)
         return ptr;
 	
