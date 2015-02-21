@@ -131,8 +131,8 @@ void *malloc(size_t size)
             if(curr->size>=size){
                 curr->prev->next=curr->next;
                 curr->next->prev=curr->prev;
-                void* t=(void*)curr+sizeof(mem_list);
-                return t;
+                return (void*)curr+sizeof(mem_list);
+                
             }else{
                 curr=curr->next;
             }
