@@ -44,6 +44,15 @@ typedef struct mem_list{
     struct mem_list *prev;
 }mem_list;
 
+size_t align8(size_t);
+
+
+size_t align8(size_t s){
+	if((s & 0x7) == 0)
+		return s;
+	return ((s>>3) + 1) << 3;
+}
+
 /**
  * Allocate space for array in memory
  * 
@@ -120,7 +129,7 @@ void *malloc(size_t size)
         curr=head;
         while(curr!=tail){
             if(curr->size>=size){
-                    curr->prev->next=curr->next;
+                curr->prev->next=curr->next;
                 curr->next->prev=curr->prev;
                 void* t=(void*)curr+sizeof(mem_list);
                 return t;
@@ -163,7 +172,7 @@ void free(void *ptr)
 	if (ptr==NULL) return;
 
     mem_list* temp=((void*)ptr)-sizeof(mem_list);
-     temp->prev=tail->prev;
+    temp->prev=tail->prev;
     tail->prev->next=temp;
     tail->prev=temp;
     temp->next=tail;    
