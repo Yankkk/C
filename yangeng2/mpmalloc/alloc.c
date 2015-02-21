@@ -39,7 +39,8 @@
 
 
 typedef struct _entry_t{
-	//void *ptr;
+	//void *addr;
+	//int free;
 	size_t size;
 	struct _entry_t *next;
     struct _entry_t *prev;
@@ -109,10 +110,10 @@ void split(mem_list * chosen, size_t s){
  */
 void *calloc(size_t num, size_t size)
 {
-	void *ptr = malloc(num * size);
+	void *ptr = malloc(num * size);                // allocate new memory
 	
 	if (ptr)
-		memset(ptr, 0x00, num * size);
+		memset(ptr, 0x00, num * size);              // zero it
 
 	return ptr;
 }
@@ -146,7 +147,7 @@ _entry_t *tail=NULL;
 
 void *malloc(size_t size)
 {
-        if(!heat){
+        if(!heat){                                // initialize free list
             heat=sbrk(sizeof(_entry_t));
             tail=sbrk(sizeof(_entry_t));
             heat->size=0;
@@ -157,8 +158,8 @@ void *malloc(size_t size)
 
         curr=heat;
         while(curr!=tail){
-            if(curr->size>=size){
-                    curr->prev->next=curr->next;
+            if(curr->size>=size){                     // find the block in free list
+                    curr->prev->next=curr->next;      // remove from free list
                 curr->next->prev=curr->prev;
         
 
@@ -169,7 +170,7 @@ void *malloc(size_t size)
             }
         }
 
-    _entry_t* temp=sbrk(sizeof(_entry_t));
+    _entry_t* temp=sbrk(sizeof(_entry_t));          // not find block allocate new block
     temp->next=NULL;
     temp->prev=NULL;
     temp->size=size;
@@ -196,9 +197,9 @@ void *malloc(size_t size)
  */
 void free(void *ptr)
 {
-	if (ptr==NULL) return;
+	if (ptr==NULL) return;                    // check for NULL pointer
 
-    _entry_t* temp=((void*)ptr)-sizeof(_entry_t);
+    _entry_t* temp=((void*)ptr)-sizeof(_entry_t);        // add block to free list
      temp->prev=tail->prev;
     tail->prev->next=temp;
     tail->prev=temp;
@@ -254,22 +255,22 @@ void free(void *ptr)
 void *realloc(void *ptr, size_t size)
 {
 
-	if (ptr==NULL)
+	if (ptr==NULL)                          // check for NULL pointer
 		return malloc(size);
 
-	if (size==0)
+	if (size==0)                               // check for 0 size
 	{
 		free(ptr);
 		return NULL;
 	}
 
 
-    _entry_t* temp=(void*)ptr-sizeof(_entry_t);
-    if(temp->size>=size)
+    _entry_t* temp=(void*)ptr-sizeof(_entry_t);          // find the block
+    if(temp->size>=size)                       // if big enough use it
         return ptr;
 	
-    void* result=malloc(size);
-	memcpy(result,ptr,temp->size);
+    void* result=malloc(size);              // not big enough allocate new one
+	memcpy(result,ptr,temp->size);          // copy memory
 	free(ptr);
 	return result;
 }
