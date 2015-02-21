@@ -148,21 +148,21 @@ void *calloc(size_t num, size_t size)
 
 
 _entry_t *curr=NULL;
-_entry_t *head=NULL;
+_entry_t *heat=NULL;
 _entry_t *tail=NULL;
 
 void *malloc(size_t size)
 {
-        if(!head){                                 // initialize free list
-            head=sbrk(sizeof(_entry_t));
+        if(!heat){                                 // initialize free list
+            heat=sbrk(sizeof(_entry_t));
             tail=sbrk(sizeof(_entry_t));
-            head->size=0;
+            heat->size=0;
             tail->size=0;
-            head->next=tail;
-            tail->prev=head;
+            heat->next=tail;
+            tail->prev=heat;
         }
 
-        curr=head;
+        curr=heat;
         while(curr!=tail){
             if(curr->size>=size){                     // if find suitable block
                     curr->prev->next=curr->next;       // remove from free list
