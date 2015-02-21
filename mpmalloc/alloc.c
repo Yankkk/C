@@ -143,31 +143,32 @@ void *calloc(size_t num, size_t size)
  */
  
  
-_entry_t *curr=NULL;
-_entry_t *heat=NULL;
+
+_entry_t *head=NULL;
 _entry_t *tail=NULL;
+_entry_t *curr=NULL;
+
 
 void *malloc(size_t size)
 {
-        if(!heat){                                // initialize free list
-            heat=sbrk(sizeof(_entry_t));
+        if(!head){                                // initialize free list
+            head=sbrk(sizeof(_entry_t));
             tail=sbrk(sizeof(_entry_t));
-            heat->size=0;
+            head->size=0;
             tail->size=0;
-            heat->next=tail;
-            tail->prev=heat;
+            head->next=tail;
+            tail->prev=head;
         }
 
-        curr=heat;
+        curr=head;
         while(curr!=tail){
             if(curr->size>=size){                     // find the block in free list
                     curr->prev->next=curr->next;      // remove from free list
                 curr->next->prev=curr->prev;
-        
-
                 void* t=(void*)curr+sizeof(_entry_t);
                 return t;
-            }else{
+            }
+            else{
                 curr=curr->next;
             }
         }
