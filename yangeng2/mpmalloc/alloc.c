@@ -38,13 +38,13 @@
 
 
 
-typedef struct _entry_t{
+typedef struct mem_list{
 	//void *addr;
 	//int free;
 	size_t size;
-	struct _entry_t *next;
-    struct _entry_t *prev;
-}_entry_t;
+	struct mem_list *next;
+    struct mem_list *prev;
+}mem_list;
 
 
 //void split(mem_list *, size_t);
@@ -143,41 +143,41 @@ void *calloc(size_t num, size_t size)
  */
  
  
-_entry_t *curr=NULL;
-_entry_t *heat=NULL;
-_entry_t *tail=NULL;
+mem_list *curr=NULL;
+mem_list *head=NULL;
+mem_list *tail=NULL;
 
 void *malloc(size_t size)
 {
-        if(!heat){                                // initialize free list
-            heat=sbrk(sizeof(_entry_t));
-            tail=sbrk(sizeof(_entry_t));
-            heat->size=0;
+        if(!head){                                // initialize free list
+            head=sbrk(sizeof(mem_list));
+            tail=sbrk(sizeof(mem_list));
+            head->size=0;
             tail->size=0;
-            heat->next=tail;
-            tail->prev=heat;
+            head->next=tail;
+            tail->prev=head;
         }
 
-        curr=heat;
+        curr=head;
         while(curr!=tail){
             if(curr->size>=size){                     // find the block in free list
                     curr->prev->next=curr->next;      // remove from free list
                 curr->next->prev=curr->prev;
         
 
-                void* t=(void*)curr+sizeof(_entry_t);
+                void* t=(void*)curr+sizeof(mem_list);
                 return t;
             }else{
                 curr=curr->next;
             }
         }
 
-    _entry_t* temp=sbrk(sizeof(_entry_t));          // not find block allocate new block
+    mem_list* temp=sbrk(sizeof(mem_list));          // not find block allocate new block
     temp->next=NULL;
     temp->prev=NULL;
     temp->size=size;
     sbrk(size);
-    return (void*)temp+sizeof(_entry_t);	
+    return (void*)temp+sizeof(mem_list);	
 }
 
 
@@ -229,7 +229,7 @@ void free(void *ptr)
 {
 	if (ptr==NULL) return;                    // check for NULL pointer
 
-    _entry_t* temp=((void*)ptr)-sizeof(_entry_t);        // add block to free list
+    mem_list* temp=((void*)ptr)-sizeof(mem_list);        // add block to free list
      temp->prev=tail->prev;
     tail->prev->next=temp;
     tail->prev=temp;
@@ -295,7 +295,7 @@ void *realloc(void *ptr, size_t size)
 	}
 
 
-    _entry_t* temp=(void*)ptr-sizeof(_entry_t);          // find the block
+    mem_list* temp=(void*)ptr-sizeof(mem_list);          // find the block
     if(temp->size>=size)                       // if big enough use it
         return ptr;
 	
