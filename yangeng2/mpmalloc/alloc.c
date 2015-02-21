@@ -40,12 +40,13 @@
 
 
   
-typedef struct _entry_t{
+typedef struct mem_list{
 	//void *ptr;
+	//int free;
 	size_t size;
-	struct _entry_t *next;
-    struct _entry_t *prev;
-}_entry_t;
+	struct mem_list *next;
+    struct mem_list *prev;
+}mem_list;
 
 //void split(mem_list *, size_t);
 //size_t align8(size_t );
@@ -147,15 +148,15 @@ void *calloc(size_t num, size_t size)
 
 
 
-_entry_t *curr=NULL;
-_entry_t *heat=NULL;
-_entry_t *tail=NULL;
+mem_list *curr=NULL;
+mem_list *heat=NULL;
+mem_list *tail=NULL;
 
 void *malloc(size_t size)
 {
         if(!heat){                                 // initialize free list
-            heat=sbrk(sizeof(_entry_t));
-            tail=sbrk(sizeof(_entry_t));
+            heat=sbrk(sizeof(mem_list));
+            tail=sbrk(sizeof(mem_list));
             heat->size=0;
             tail->size=0;
             heat->next=tail;
@@ -169,19 +170,19 @@ void *malloc(size_t size)
                 curr->next->prev=curr->prev;
         
 
-                void* t=(void*)curr+sizeof(_entry_t);
+                void* t=(void*)curr+sizeof(mem_list);
                 return t;
             }else{
                 curr=curr->next;
             }
         }
 
-    _entry_t* temp=sbrk(sizeof(_entry_t));               // no suitable block
+    mem_list* temp=sbrk(sizeof(mem_list));               // no suitable block
     temp->next=NULL;                                    // allocate new memory
     temp->prev=NULL;
     temp->size=size;
     sbrk(size);
-    return (void*)temp+sizeof(_entry_t);	
+    return (void*)temp+sizeof(mem_list);	
 }
 
 
@@ -235,7 +236,7 @@ void free(void *ptr)
 {
 	if (ptr==NULL) return;                            // check for NULL pointer
 
-    _entry_t* temp=((void*)ptr)-sizeof(_entry_t);          // add to free list
+    mem_list* temp=((void*)ptr)-sizeof(mem_list);          // add to free list
      temp->prev=tail->prev;
     tail->prev->next=temp;
     tail->prev=temp;
@@ -301,7 +302,7 @@ void *realloc(void *ptr, size_t size)
 	}
 
 
-    _entry_t* temp=(void*)ptr-sizeof(_entry_t);        // find block
+    mem_list* temp=(void*)ptr-sizeof(mem_list);        // find block
     if(temp->size>=size)                         // the block is big enough use it
         return ptr;
 	
