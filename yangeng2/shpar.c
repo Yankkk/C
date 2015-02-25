@@ -119,7 +119,7 @@ q        Quits.\n");
 		}
 		
 		
-		if(buffer[0] == 'r'){
+		if(buffer[0] == 'r'){   
 			char commond[2048];
 			pro = buffer[2];
 			
