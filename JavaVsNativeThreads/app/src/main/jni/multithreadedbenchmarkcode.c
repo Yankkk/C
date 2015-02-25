@@ -14,7 +14,7 @@ I was able to achieve a speed up of ~9 times faster than Java
 
 // If you start with 1 thread, then this code does not call pthread_create
 // It should calculate the entire result just on the calling thread
-#define NTHREADS (1)
+#define NTHREADS (2)
 
 
 JNIEXPORT jstring JNICALL Java_edu_illinios_cs241_javavsandroidthreads_MultithreadedNativeBenchmark_hello
@@ -41,10 +41,10 @@ struct task_t {
 void* process_array(void* arg) {
   // TODO: extract num and array from the argument
   // First, cast the pointer to a pointer to a struct
-  struct task_t* taskptr = _______
+  struct task_t* taskptr = (struct task_t *) arg;
 
-  const int num = _____
-  const float* array = _______
+  const int num = taskptr->num;
+  const float* array = taskptr->array;
 
   float result = FLT_MAX;
 
@@ -57,7 +57,7 @@ void* process_array(void* arg) {
          result = val;
   }
 
-   _____ //put result back into the struct
+   taskptr->result = result;  //put result back into the struct
 
   return NULL;
 }
@@ -90,17 +90,17 @@ JNIEXPORT jfloat JNICALL Java_edu_illinios_cs241_javavsandroidthreads_Multithrea
           if(i>0) {
             pthread_create(&tasks[i].tid, NULL, process_array, &tasks[i]);
           }
-          return NULL;
+          //return NULL;
         }
 
-        ____ // complete task[0] work on this thread
+        process_array(&tasks[0]);  // complete task[0] work on this thread
         
         // Why do we sandwhich the above call BETWEEN pthread_create and pthread join for the other threads!?
         float result= tasks[0].result;
         
         // Wait for other threads to finish
         for(i =1; i < NTHREADS; i++) { 
-           ______ // Hint Not pthread_exit! Hint: We don't need the return NULL value
+          pthread_join(tasks[i].tid, NULL); // Hint Not pthread_exit! Hint: We don't need the return NULL value
           float partial = tasks[i].result;
           if(result > partial ) result =  partial ;
         }
