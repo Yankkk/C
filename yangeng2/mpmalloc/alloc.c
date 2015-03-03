@@ -154,6 +154,7 @@ mem_list *tail=NULL;
 
 void *malloc(size_t size)
 {
+
         if(!heat){                                 // initialize free list
             heat=sbrk(sizeof(mem_list));
             tail=sbrk(sizeof(mem_list));

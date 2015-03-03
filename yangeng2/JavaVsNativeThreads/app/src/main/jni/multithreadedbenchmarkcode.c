@@ -14,7 +14,7 @@ I was able to achieve a speed up of ~9 times faster than Java
 
 // If you start with 1 thread, then this code does not call pthread_create
 // It should calculate the entire result just on the calling thread
-#define NTHREADS (2)
+#define NTHREADS (3)
 
 
 JNIEXPORT jstring JNICALL Java_edu_illinios_cs241_javavsandroidthreads_MultithreadedNativeBenchmark_hello
