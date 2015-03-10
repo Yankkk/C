@@ -1,6 +1,6 @@
 // Replace "Full name" and "netid" here with your name and netid
 
-// Copyright (C) [Full name] ([netid]) 2015
+// Copyright (C) [Yan Geng] ([yangeng2]) 2015
 
 #include <pthread.h>
 #include <stdio.h>
@@ -10,12 +10,23 @@
 
 task_t* queue[QUEUE_SIZE];
 int in, out, count;
+int in = 0, out = 0, count = 0;
+int flag = 0;
+pthread_mutex_t m = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t cv = PTHREAD_COND_INITIALIZER;
 
 /* Adds the task to the queue. If the queue is full this call will block until space is available.
   enqueue 'NULL' when there are no more tasks to execute. */
 
 void enqueue(task_t*task) {
- 
+	pthread_mutex_lock(&m);
+	while(count == QUEUE_SIZE){
+		pthread_cond_wait(&cv, &m);
+	}
+	queue[(in++) & (QUEUE_SIZE-1)] = task;
+	count++;
+	pthread_cond_broadcast(&cv);
+	pthread_mutex_unlock(&m);
 }
 
 /* Removes the next task from the queue. If there are currently no more items, this call blocks.
@@ -25,7 +36,24 @@ void enqueue(task_t*task) {
 task_t* dequeue() {
   //The special NULL (finished) stays in the queue
   // Once NULL is returned, dequeue will never block and will always immediately return NULL.
-  
-  
-  return NULL;
+  if(flag == 1){
+  	return NULL;
+  }
+  pthread_mutex_lock(&m);
+ 
+  while(count == 0){
+  	pthread_cond_wait(&cv, &m);
+  }
+  task_t* result = queue[(out) & (QUEUE_SIZE-1)];
+  if(result == NULL){
+  	flag = 1;
+  	pthread_cond_broadcast(&cv);
+  	pthread_mutex_unlock(&m);
+  	return NULL;
+  }
+  out++;
+  count--;
+  pthread_cond_broadcast(&cv);
+  pthread_mutex_unlock(&m);
+  return result;
 }
