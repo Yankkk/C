@@ -1,6 +1,6 @@
 // Replace "Full name" and "netid" here with your name and netid
 
-// Copyright (C) [Full name] ([netid]) 2015
+// Copyright (C) [Yan Geng] ([yangeng2]) 2015
 
 #include <string.h>
 #include <stdio.h>
@@ -65,8 +65,9 @@ void child_finished(int* scratch, task_t* task) {
   
   // THIS IS A CRITICAL SECTION (WHY?)
   // How will you protect it?
+  pthread_mutex_lock(&m);
   int done = ++ (task->completed_child_tasks);
-
+  pthread_mutex_unlock(&m);
 
   assert(done>0 && done<3);
   
@@ -87,34 +88,36 @@ void do_task(int*scratch, task_t* task) {
   if(len <=256) {
     qsort(data +start,len,sizeof(int), compare_fn);    
   } else {
-    simple_merge(MISSING PARAMETERS);    
+    simple_merge(data, scratch, start, midpt, end);    
   }
   if(verbose) 
      print_stat(data,start,end);
      
-   MISSING CODE HERE - tell the parent task that we have finished
-   
+   //MISSING CODE HERE - tell the parent task that we have finished
+   child_finished(scratch, task->parent);
     
   // Did we just sort all items? If so, enqueue the poison-pill,
   // enqueue the NULL task to tell all threads to quit
   
-  MISSING CODE HERE - enqueue NULL if that was the largest possible merge
-  
+  //MISSING CODE HERE - enqueue NULL if that was the largest possible merge
+  if(len == nitems){
+  	enqueue(NULL);
+  }
 }
 
 void* worker_func(void* arg) {
   // Each thread has its own private scratch memory
   // used for merging
   
-  MISSING CODE HERE
-  Create some per-thread scratch space. But how much! What is the largest we 
-  would need for the lifetime of this thread?
+ // MISSING CODE HERE
+ // Create some per-thread scratch space. But how much! What is the largest we 
+ // would need for the lifetime of this thread?
   
   // How does the following loop work?
   
   // Each thread goes back to the queue to get the next piece of work
   // We quit when we pull the magic null task
-  
+  int * scratch = (int *)malloc(sizeof(int)*nitems);
   task_t * task;
   while( (task = dequeue()) )  {
     do_task(scratch, task);
@@ -130,16 +133,21 @@ void my_threaded_mergesort(int* _data,int _nitems) {
   data = _data;
   nitems = _nitems;
 
-  MISSING CODE
-  Create nthread-1 threads that call worker_func 
+ // MISSING CODE
+ // Create nthread-1 threads that call worker_func 
+ int i;
+ for(i = 1; i < nthreads; i++){
+ 	pthread_create(&tid[i], NULL, worker_func, (void *) NULL);
+ }
   
   create_tasks(NULL,  0, nitems );
 
   worker_func( NULL ); // WHY?
   
   // Why i = 1??
-  for(int i=1;i < nthreads; i++) { 
-    MISSING CODE; WAIT FOR OTHER THREADS TO FINISH
+  for(i=1; i < nthreads; i++) { 
+   // MISSING CODE; WAIT FOR OTHER THREADS TO FINISH
+   	pthread_join(tid[i], NULL);
   }
   
 }
