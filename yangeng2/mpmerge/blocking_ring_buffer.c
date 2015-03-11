@@ -13,7 +13,8 @@ int in, out, count;
 int in = 0, out = 0, count = 0;
 int flag = 0;
 pthread_mutex_t m = PTHREAD_MUTEX_INITIALIZER;
-pthread_cond_t cv = PTHREAD_COND_INITIALIZER;
+pthread_cond_t cv1 = PTHREAD_COND_INITIALIZER;
+pthread_cond_t cv2 = PTHREAD_COND_INITIALIZER;
 
 /* Adds the task to the queue. If the queue is full this call will block until space is available.
   enqueue 'NULL' when there are no more tasks to execute. */
@@ -21,11 +22,11 @@ pthread_cond_t cv = PTHREAD_COND_INITIALIZER;
 void enqueue(task_t*task) {
 	pthread_mutex_lock(&m);
 	while(count == QUEUE_SIZE){
-		pthread_cond_wait(&cv, &m);
+		pthread_cond_wait(&cv1, &m);
 	}
 	queue[(in++) & (QUEUE_SIZE-1)] = task;
 	count++;
-	pthread_cond_broadcast(&cv);
+	pthread_cond_broadcast(&cv2);
 	pthread_mutex_unlock(&m);
 }
 
@@ -42,18 +43,18 @@ task_t* dequeue() {
   pthread_mutex_lock(&m);
  
   while(count == 0){
-  	pthread_cond_wait(&cv, &m);
+  	pthread_cond_wait(&cv2, &m);
   }
   task_t* result = queue[(out) & (QUEUE_SIZE-1)];
   if(result == NULL){
   	flag = 1;
-  	pthread_cond_broadcast(&cv);
+  	pthread_cond_broadcast(&cv1);
   	pthread_mutex_unlock(&m);
   	return NULL;
   }
   out++;
   count--;
-  pthread_cond_broadcast(&cv);
+  pthread_cond_broadcast(&cv1);
   pthread_mutex_unlock(&m);
   return result;
 }
