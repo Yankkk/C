@@ -1,6 +1,6 @@
 // Replace "Full name" and "netid" here with your name and netid
 
-// Copyright (C) [Full name] ([netid]) 2015
+// Copyright (C) [Yan Geng] ([yangeng2]) 2015
 
 #include <string.h>
 #include <stdio.h>
@@ -10,6 +10,8 @@
 
 #include "mpsortutil.h"
 
+#define MAXTHREAD (16)
+
 extern int nthreads, verbose; // defined in main.c
 extern char * outfile_name;
 
@@ -17,6 +19,7 @@ static FILE * outfile;
 static int* data;
 static int nitems;
 static int capacity;
+static pthread_t tid[MAXTHREAD];
 
 /**
  * Stream-based fast sort. The stream sort may be faster because you can start processing the data
@@ -29,6 +32,11 @@ static int capacity;
 void stream_init() {
   outfile = open_outfile(outfile_name);
   // do awesome stuff
+  int i;
+  for(int i = 1; i < nthreads; i++){
+  	pthread_create(&tid[i], NULL, worker_func, NULL);
+  }
+  worker_func(NULL);
 }
 
 
@@ -43,6 +51,17 @@ void stream_init() {
 void stream_data(int* buffer, int count) {
   // You can already start sorting before the data is fully read into memory
   // do awesome stuff
+  memcpy(data, buffer, count*sizeof(int));
+  nitems = count;
+  capacity += count;
+  if(nthreads == -1){
+  	baseline_nonthreaded_mergesort(data, nitems);
+  }
+  else{
+  	create_task(NULL, capacity-count, capacity);
+  }
+  
+  
 }
 
 /**
@@ -51,10 +70,12 @@ void stream_data(int* buffer, int count) {
 */
 void stream_end() {
 // do awesome stuff
-
+  for(int i = 1; i < nthreads; i++){
+	pthread_join(tid[i], NULL);
+  }
 // then print to outfile e.g.
-//  for(int i = 0; i < nitems;i++) 
-//     fprintf(outfile,"%d\n", data[i]);
+  for(int i = 0; i < nitems;i++) 
+     fprintf(outfile,"%d\n", data[i]);
      
   if(outfile != stdout) 
      fclose(outfile);

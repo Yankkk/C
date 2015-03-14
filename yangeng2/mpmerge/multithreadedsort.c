@@ -95,7 +95,7 @@ void do_task(int*scratch, task_t* task) {
      
    //MISSING CODE HERE - tell the parent task that we have finished
    child_finished(scratch, task->parent);
-    
+    free(task);
   // Did we just sort all items? If so, enqueue the poison-pill,
   // enqueue the NULL task to tell all threads to quit
   
