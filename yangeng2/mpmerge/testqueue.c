@@ -199,7 +199,7 @@ int test4() {
   puts("Test 4, waiting on consumer 1...");
   pthread_join(tid3,NULL);
   puts("Test 4, waiting on consumer 2...");
-  pthread_join(tid3,NULL);
+  pthread_join(tid4,NULL);
   printf("Test 4, total consumed  %d values\n", total_consume_count );
   printf("Test 4, total sum %ld values\n", sum );
 
