@@ -94,7 +94,9 @@ void do_task(int*scratch, task_t* task) {
      print_stat(data,start,end);
      
    //MISSING CODE HERE - tell the parent task that we have finished
-   child_finished(scratch, task->parent);
+   if(len < nitems){
+   		child_finished(scratch, task->parent);
+   }
     free(task);
   // Did we just sort all items? If so, enqueue the poison-pill,
   // enqueue the NULL task to tell all threads to quit
