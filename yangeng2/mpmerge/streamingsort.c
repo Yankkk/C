@@ -21,6 +21,9 @@ static int nitems;
 static int capacity;
 static pthread_t tid[MAXTHREAD];
 
+//pthread_mutex_t m = PTHREAD_MUTEX_INITIALIZER;
+//int num = 0;
+
 /**
  * Stream-based fast sort. The stream sort may be faster because you can start processing the data
  * before it has been fully read.
@@ -32,11 +35,13 @@ static pthread_t tid[MAXTHREAD];
 void stream_init() {
   outfile = open_outfile(outfile_name);
   // do awesome stuff
+  /*
   int i;
   for(int i = 1; i < nthreads; i++){
   	pthread_create(&tid[i], NULL, worker_func, NULL);
   }
   worker_func(NULL);
+  */
 }
 
 
@@ -51,18 +56,25 @@ void stream_init() {
 void stream_data(int* buffer, int count) {
   // You can already start sorting before the data is fully read into memory
   // do awesome stuff
+ /*
   memcpy(data, buffer, count*sizeof(int));
-  nitems = count;
-  capacity += count;
+  
   if(nthreads == -1){
   	baseline_nonthreaded_mergesort(data, nitems);
   }
   else{
-  	create_task(NULL, capacity-count, capacity);
+  	qsort(buffer,count, sizeof(int), compare_fn);
+  	pthread_mutex_lock(&m);
+  	num ++;
+  	pthread_mutex_lock(&m);
+  	if(num == 2){
+  		merge();	
+  	}
   }
   
-  
+  */
 }
+
 
 /**
  * All data has been delivered. Your implementation should now finish writing out sorted data and verbose info.
@@ -70,13 +82,16 @@ void stream_data(int* buffer, int count) {
 */
 void stream_end() {
 // do awesome stuff
+// then print to outfile e.g.
+	/*
   for(int i = 1; i < nthreads; i++){
 	pthread_join(tid[i], NULL);
   }
-// then print to outfile e.g.
+
   for(int i = 0; i < nitems;i++) 
      fprintf(outfile,"%d\n", data[i]);
      
   if(outfile != stdout) 
      fclose(outfile);
+     */
 }

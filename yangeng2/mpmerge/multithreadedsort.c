@@ -119,7 +119,8 @@ void* worker_func(void* arg) {
   // We quit when we pull the magic null task
   int * scratch = (int *)malloc(sizeof(int)*nitems);
   task_t * task;
-  while( (task = dequeue()) )  {
+
+  while( (task = dequeue()))  {
     do_task(scratch, task);
   }
   
