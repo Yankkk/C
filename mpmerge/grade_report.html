@@ -64,6 +64,9 @@
     <option value="1">
      2015-03-22 16:34:39.600089
     </option>
+    <option value="2">
+     2015-03-23 21:21:15.841117
+    </option>
    </select>
    <button onclick="incrementResults(1)">
     Next Results
@@ -490,6 +493,225 @@ Test 4 passed
 ==4128== 
 ==4128== For counts of detected and suppressed errors, rerun with: -v
 ==4128== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 3 from 3)
+      </textarea>
+     </div>
+    </div>
+    <div class="visible result" id="result_div">
+     <div class="two_column">
+      <h2 id="revision">
+       Revision: 9958
+      </h2>
+      <h2 id="timestamp">
+       Time: 2015-03-23 21:21:15.841117
+      </h2>
+     </div>
+     <br/>
+     <br/>
+     <br/>
+     <div id="testcase_div">
+      <div class="two_column">
+       <h3 id="testcase">
+        TestCase: enqueue63
+       </h3>
+       <h3 class="pass" id="score">
+        Score: 6.0
+       </h3>
+      </div>
+      <h4>
+       Output Log
+      </h4>
+      <textarea cols="80" id="output_log" rows="15">
+       Enqueueing 63 numbers
+Test 1:
+Test 1 passed
+      </textarea>
+     </div>
+     <div id="testcase_div">
+      <div class="two_column">
+       <h3 id="testcase">
+        TestCase: naive_producer_consumer
+       </h3>
+       <h3 class="pass" id="score">
+        Score: 6.0
+       </h3>
+      </div>
+      <h4>
+       Output Log
+      </h4>
+      <textarea cols="80" id="output_log" rows="15">
+       Trys to create buffer under or over flow
+Test 2:
+Test 2, waiting on producer...
+Test 2, waiting on consumer...
+Test 2 passed
+      </textarea>
+     </div>
+     <div id="testcase_div">
+      <div class="two_column">
+       <h3 id="testcase">
+        TestCase: enqueue_dequeue64
+       </h3>
+       <h3 class="pass" id="score">
+        Score: 6.0
+       </h3>
+      </div>
+      <h4>
+       Output Log
+      </h4>
+      <textarea cols="80" id="output_log" rows="15">
+       Enqueueing 64 numbers, then Dequeing 64 numbers
+Test 3:
+Test 3, enqueueing 64 tasks...
+Test 3, dequeing 64 tasks...
+Test 3, enqueueing 'poison-pill' NULL task
+Test 3, dequeueing NULL task (should never block)
+Test 3 passed
+      </textarea>
+     </div>
+     <div id="testcase_div">
+      <div class="two_column">
+       <h3 id="testcase">
+        TestCase: produer_consumer
+       </h3>
+       <h3 class="pass" id="score">
+        Score: 6.0
+       </h3>
+      </div>
+      <h4>
+       Output Log
+      </h4>
+      <textarea cols="80" id="output_log" rows="15">
+       Trys hard to create buffer under or over flow
+Test 4:
+Producer starting
+Producer starting
+Test4, consumer starting up
+Test 4, waiting on producer 1...
+Test4, consumer starting up
+Test 4, producer quiting
+Test 4, producer quiting
+Test 4, consumer got 9454 values
+Test 4, consumer: NULL value-&gt; quitting
+Test 4, consumer got 10546 values
+Test 4, consumer: NULL value-&gt; quitting
+Test 4, waiting on producer 2...
+Test 4, waiting on consumer 1...
+Test 4, waiting on consumer 2...
+Test 4, total consumed  20000 values
+Test 4, total sum 100010000 values
+Test 4 passed
+      </textarea>
+     </div>
+     <div id="testcase_div">
+      <div class="two_column">
+       <h3 id="testcase">
+        TestCase: queue_memory_check
+       </h3>
+       <h3 class="pass" id="score">
+        Score: 6.0
+       </h3>
+      </div>
+      <h4>
+       Output Log
+      </h4>
+      <textarea cols="80" id="output_log" rows="15">
+       Testing queue memomery management
+==26897== Memcheck, a memory error detector
+==26897== Copyright (C) 2002-2013, and GNU GPL'd, by Julian Seward et al.
+==26897== Using Valgrind-3.9.0 and LibVEX; rerun with -h for copyright info
+==26897== Command: ./mpmerge/test_svn/yangeng2/mpmerge/runtestqueue 1 --leak-check=full
+==26897== 
+==26897== 
+==26897== HEAP SUMMARY:
+==26897==     in use at exit: 0 bytes in 0 blocks
+==26897==   total heap usage: 1 allocs, 1 frees, 272 bytes allocated
+==26897== 
+==26897== All heap blocks were freed -- no leaks are possible
+==26897== 
+==26897== For counts of detected and suppressed errors, rerun with: -v
+==26897== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 3 from 3)
+      </textarea>
+     </div>
+     <div id="testcase_div">
+      <div class="two_column">
+       <h3 id="testcase">
+        TestCase: small_data_merge
+       </h3>
+       <h3 class="pass" id="score">
+        Score: 6
+       </h3>
+      </div>
+      <h4>
+       Output Log
+      </h4>
+      <textarea cols="80" id="output_log" rows="15">
+       Testing multithreaded mergesort with 8192 random integers
+PASSED !!!
+      </textarea>
+     </div>
+     <div id="testcase_div">
+      <div class="two_column">
+       <h3 id="testcase">
+        TestCase: medium_data_merge
+       </h3>
+       <h3 class="pass" id="score">
+        Score: 6
+       </h3>
+      </div>
+      <h4>
+       Output Log
+      </h4>
+      <textarea cols="80" id="output_log" rows="15">
+       Testing multithreaded mergesort with 1 million random integers
+PASSED !!!
+      </textarea>
+     </div>
+     <div id="testcase_div">
+      <div class="two_column">
+       <h3 id="testcase">
+        TestCase: large_data_merge
+       </h3>
+       <h3 class="fail" id="score">
+        Score: 6
+       </h3>
+      </div>
+      <h4>
+       Output Log
+      </h4>
+      <textarea cols="80" id="output_log" rows="15">
+       Testing multithreaded mergesort with 1 million random integers
+FAILED TO BEAT BASELINE!
+PASSED !!!
+      </textarea>
+     </div>
+     <div id="testcase_div">
+      <div class="two_column">
+       <h3 id="testcase">
+        TestCase: merge_memory_check
+       </h3>
+       <h3 class="pass" id="score">
+        Score: 6.0
+       </h3>
+      </div>
+      <h4>
+       Output Log
+      </h4>
+      <textarea cols="80" id="output_log" rows="15">
+       Testing merge memomery management
+==26962== Memcheck, a memory error detector
+==26962== Copyright (C) 2002-2013, and GNU GPL'd, by Julian Seward et al.
+==26962== Using Valgrind-3.9.0 and LibVEX; rerun with -h for copyright info
+==26962== Command: ./mpmerge/test_svn/yangeng2/mpmerge/mpsort -4 mpmerge/shared_data/8192.txt --leak-check=full
+==26962== 
+==26962== 
+==26962== HEAP SUMMARY:
+==26962==     in use at exit: 0 bytes in 0 blocks
+==26962==   total heap usage: 0 allocs, 0 frees, 0 bytes allocated
+==26962== 
+==26962== All heap blocks were freed -- no leaks are possible
+==26962== 
+==26962== For counts of detected and suppressed errors, rerun with: -v
+==26962== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 3 from 3)
       </textarea>
      </div>
     </div>
