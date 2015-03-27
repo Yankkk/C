@@ -9,8 +9,10 @@
 #include <pthread.h>
 
 #include "mpsortutil.h"
+#include "blocking_ring_buffer.h"
 
 #define MAXTHREAD (16)
+#define QUEUE_SIZE (64)
 
 extern int nthreads, verbose; // defined in main.c
 extern char * outfile_name;
@@ -21,8 +23,85 @@ static int nitems;
 static int capacity;
 static pthread_t tid[MAXTHREAD];
 
-//pthread_mutex_t m = PTHREAD_MUTEX_INITIALIZER;
-//int num = 0;
+
+
+
+typedef struct _block {
+ // int start, end;
+  int * mydata;
+  size_t size;
+   
+}block;
+
+typedef struct _lock {
+ pthread_mutex_t ms;
+ pthread_cond_t cvs1;
+ pthread_cond_t cvs2;  
+} lock;
+
+lock* lock1;
+lock* lock2;
+//void do_tasks(int*, task_t* );
+
+block* queue_s[QUEUE_SIZE];
+block* queue_m[QUEUE_SIZE];
+
+pthread_mutex_t mm = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t mm2 = PTHREAD_MUTEX_INITIALIZER;
+
+int ins[2];
+int outs[2];
+int counts[2];
+
+int F;
+int done;
+int flags[2];
+
+void* worker_funcs(void* arg);
+
+block* dequeues(block ** queue, lock * locks, int i);
+void enqueues(block* task, block** queue, lock * locks, int i);
+
+static int compare_fns(const void *arg1, const void *arg2) {
+  return (*((int*)arg1)) - (*((int*)arg2)); 
+}
+
+
+
+void enqueues(block* task, block** queue, lock * locks, int i) {
+	pthread_mutex_lock(&locks->ms);
+	while(counts[i] == QUEUE_SIZE){
+		pthread_cond_wait(&locks->cvs1, &locks->ms);
+	}
+	queue[(ins[i]++) & (QUEUE_SIZE-1)] = task;
+	counts[i]++;
+	pthread_cond_broadcast(&locks->cvs2);
+	pthread_mutex_unlock(&locks->ms);
+}
+
+block* dequeues(block** queue, lock * locks, int i) {
+  if(flags[i] == 1){
+  	return NULL;
+  }
+  pthread_mutex_lock(&locks->ms);
+ 
+  while(counts[i] == 0){
+  	pthread_cond_wait(&locks->cvs2, &locks->ms);
+  }
+  block* result = queue[(outs[i]) & (QUEUE_SIZE-1)];
+  if(result == NULL){
+  	flags[i] = 1;
+  	pthread_cond_broadcast(&locks->cvs1);
+  	pthread_mutex_unlock(&locks->ms);
+  	return NULL;
+  }
+  outs[i]++;
+  counts[i]--;
+  pthread_cond_broadcast(&locks->cvs1);
+  pthread_mutex_unlock(&locks->ms);
+  return result;
+}
+
 
 /**
  * Stream-based fast sort. The stream sort may be faster because you can start processing the data
@@ -35,15 +114,109 @@ static pthread_t tid[MAXTHREAD];
 void stream_init() {
   outfile = open_outfile(outfile_name);
   // do awesome stuff
-  /*
+  lock1 = malloc(sizeof(lock));
+  pthread_mutex_init(&lock1->ms, NULL);
+  pthread_cond_init(&lock1->cvs1, NULL);
+  pthread_cond_init(&lock1->cvs2, NULL); 
+  lock2 = malloc(sizeof(lock));
+  pthread_mutex_init(&lock2->ms, NULL);
+  pthread_cond_init(&lock2->cvs1, NULL);
+  pthread_cond_init(&lock2->cvs2, NULL); 
+  
   int i;
-  for(int i = 1; i < nthreads; i++){
-  	pthread_create(&tid[i], NULL, worker_func, NULL);
+
+  for(i = 1; i < nthreads; i++){
+  	pthread_create(&tid[i], NULL, worker_funcs, NULL);
   }
-  worker_func(NULL);
-  */
+  worker_funcs(NULL);
+  
 }
 
+
+void* worker_funcs(void* arg) {
+  block * b;
+  while( (b = dequeues(queue_s, lock1, 0) ))  {
+    qsort(b->mydata, b->size, sizeof(int), compare_fns);   
+  	enqueues(b, queue_m, lock2, 1); 
+  	pthread_mutex_lock(&mm2);
+  	done ++;
+  	pthread_mutex_unlock(&mm2);
+  }
+  
+  while(done >= 2){
+  	pthread_mutex_lock(&mm2);
+  	done-=2;
+    pthread_mutex_unlock(&mm2);
+  	block * a =  dequeues(queue_m, lock2, 1);
+  	block * c =  dequeues(queue_m, lock2, 1);
+  	int midpt = a->size;
+  	int start = 0;
+  	int end = a->size + c->size;
+    block * d = malloc(sizeof(block));
+    d->size = end;
+    d->mydata = malloc(sizeof(block)*end);
+    int i;
+    for(i=0; i<a->size ; i++){
+       d->mydata[i] = a->mydata[i];
+       }
+    for(i = a->size; i<end; i++){
+    	d->mydata[i] = c->mydata[i-a->size];
+    }
+    int * scratch = (int*)malloc(sizeof(int)*(d->size));
+  	simple_merge(d->mydata, scratch, start, midpt, end);
+  	free(scratch);
+  	if((d->size == nitems) && F){
+  		enqueues(NULL, queue_m, lock2, 1);
+  		data = d->mydata;
+  		//for(i = 0, i )
+  		if(verbose) 
+           print_stat(data,start,end);
+  	}
+  	else{
+  		enqueues(b, queue_m, lock2, 1);
+  		pthread_mutex_lock(&mm2);
+  	    done++;
+        pthread_mutex_unlock(&mm2);
+  	}
+  }
+   
+  
+  return NULL;
+}
+
+/*
+void do_tasks(block* b) {
+
+  int midpt = (b->size)/2;
+  int len = b->size;
+  int start = 0;
+  int end = b->size;
+  
+  if(len <= 256){
+  	qsort(b->mydata, len, sizeof(int), compare_fns);   
+  	enqueue(b, queue_m, 1); 
+  	pthread_mutex_lock(&mm2);
+  	done ++;
+  	pthread_mutex_unlock(&mm2);
+  }
+  else{
+  	int * scratch = (int*)malloc(sizeof(int)*len);
+  	simple_merge(b->mydata, scratch, start, midpt, end)
+  	free(scratch);
+  	if((len == nitems) && F){
+  		enqueue(NULL, queue_m, 1);
+  		for
+  	}
+  	else{
+  		enqueue(b, queue_m, 1);
+  	}
+  
+  }
+  free(b);
+}
+
+
+*/
 
 /**
  * Additional data has arrived and is ready to be processed in the buffer. 
@@ -56,23 +229,20 @@ void stream_init() {
 void stream_data(int* buffer, int count) {
   // You can already start sorting before the data is fully read into memory
   // do awesome stuff
- /*
-  memcpy(data, buffer, count*sizeof(int));
+ 
+  block * b = malloc(sizeof(block));
+  b->size = count;
+  b->mydata = malloc(sizeof(int)*count);
+  int i;
+  for(i=0; i<count ; i++)
+    b->mydata[i] = buffer[i];
+    
+  pthread_mutex_lock(&mm);
+  nitems += count;
+  pthread_mutex_unlock(&mm);
   
-  if(nthreads == -1){
-  	baseline_nonthreaded_mergesort(data, nitems);
-  }
-  else{
-  	qsort(buffer,count, sizeof(int), compare_fn);
-  	pthread_mutex_lock(&m);
-  	num ++;
-  	pthread_mutex_lock(&m);
-  	if(num == 2){
-  		merge();	
-  	}
-  }
-  
-  */
+  enqueues(b, queue_s, lock1, 0);
+
 }
 
 
@@ -83,7 +253,9 @@ void stream_data(int* buffer, int count) {
 void stream_end() {
 // do awesome stuff
 // then print to outfile e.g.
-	/*
+
+  enqueues(NULL, queue_s, lock1, 0);
+  F = 1;
   for(int i = 1; i < nthreads; i++){
 	pthread_join(tid[i], NULL);
   }
@@ -93,5 +265,5 @@ void stream_end() {
      
   if(outfile != stdout) 
      fclose(outfile);
-     */
+    
 }
