@@ -176,5 +176,5 @@ void stream_end() {
      
    if(outfile != stdout) 
      fclose(outfile);
-    free(data);
+   // free(data);
 }
