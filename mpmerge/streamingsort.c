@@ -23,44 +23,14 @@ static int nitems;
 static int capacity;
 static pthread_t tid[MAXTHREAD];
 
-
-
-
-typedef struct _block {
- // int start, end;
-  int * mydata;
-  size_t size;
-   
-}block;
-
-typedef struct _lock {
- pthread_mutex_t ms;
- pthread_cond_t cvs1;
- pthread_cond_t cvs2;  
-} lock;
-
-lock* lock1;
-lock* lock2;
-//void do_tasks(int*, task_t* );
-
-block* queue_s[QUEUE_SIZE];
-block* queue_m[QUEUE_SIZE];
-
 pthread_mutex_t mm = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t mm2 = PTHREAD_MUTEX_INITIALIZER;
 
-int ins[2];
-int outs[2];
-int counts[2];
 
-int F;
-int done;
-int flags[2];
 
-void* worker_funcs(void* arg);
+//void* worker_funcs(void* arg);
 
-block* dequeues(block ** queue, lock * locks, int i);
-void enqueues(block* task, block** queue, lock * locks, int i);
+//block* dequeues(block ** queue, lock * locks, int i);
+//void enqueues(block* task, block** queue, lock * locks, int i);
 
 static int compare_fns(const void *arg1, const void *arg2) {
   return (*((int*)arg1)) - (*((int*)arg2)); 
@@ -68,38 +38,75 @@ static int compare_fns(const void *arg1, const void *arg2) {
 
 
 
-void enqueues(block* task, block** queue, lock * locks, int i) {
-	pthread_mutex_lock(&locks->ms);
-	while(counts[i] == QUEUE_SIZE){
-		pthread_cond_wait(&locks->cvs1, &locks->ms);
-	}
-	queue[(ins[i]++) & (QUEUE_SIZE-1)] = task;
-	counts[i]++;
-	pthread_cond_broadcast(&locks->cvs2);
-	pthread_mutex_unlock(&locks->ms);
+void create_task(task_t*parent, int start, int end) { 
+  task_t* task = malloc(sizeof(task_t));
+  task->start = start;
+  task->end = end;
+  task->completed_child_tasks = 0;
+  task->parent = parent;
+  
+  int mid = (end + start) / 2;
+  int len = (end - start);
+  if(len > 256) {
+    create_task(task,  start,  mid);
+    create_task(task,  mid, end);
+  } else {
+    enqueue(task);
+  }
+}
+void do_tasks(int*scratch, task_t* task);
+
+void child_finisheds(int* scratch, task_t* task) {
+  if(task == NULL) return;
+
+  pthread_mutex_lock(&mm);
+  int done = ++ (task->completed_child_tasks);
+  pthread_mutex_unlock(&mm);
+
+  assert(done>0 && done<3);
+  
+  if(done == 2) {
+    do_tasks(scratch, task);
+  }  
 }
 
-block* dequeues(block** queue, lock * locks, int i) {
-  if(flags[i] == 1){
-  	return NULL;
+void do_tasks(int*scratch, task_t* task) {
+  int start = task->start;
+  int end = task->end;
+  
+  int midpt = (start + end)/2;
+  int len = end - start;
+  
+  if(len <=256) {
+    qsort(data +start,len,sizeof(int), compare_fns);    
+  } else {
+    simple_merge(data, scratch, start, midpt, end);    
   }
-  pthread_mutex_lock(&locks->ms);
- 
-  while(counts[i] == 0){
-  	pthread_cond_wait(&locks->cvs2, &locks->ms);
+  if(verbose) 
+     print_stat(data,start,end);
+     
+   if(len < nitems){
+   		child_finisheds(scratch, task->parent);
+   }
+    free(task);
+
+  if(len == nitems){
+  	enqueue(NULL);
   }
-  block* result = queue[(outs[i]) & (QUEUE_SIZE-1)];
-  if(result == NULL){
-  	flags[i] = 1;
-  	pthread_cond_broadcast(&locks->cvs1);
-  	pthread_mutex_unlock(&locks->ms);
-  	return NULL;
+}
+
+void* worker_funcs(void* arg) {
+
+  int * scratch = (int *)malloc(1);
+  task_t * task;
+
+  while( (task = dequeue()))  {
+  	scratch = (int *)realloc(scratch, sizeof(int)*nitems);
+    do_tasks(scratch, task);
   }
-  outs[i]++;
-  counts[i]--;
-  pthread_cond_broadcast(&locks->cvs1);
-  pthread_mutex_unlock(&locks->ms);
-  return result;
+  
+  free(scratch);
+  return NULL;
 }
 
 
@@ -109,114 +116,22 @@ block* dequeues(block** queue, lock * locks, int i) {
  * Before data arrives, you can pre-create threads and prepared to send output to the given ile
  * @param nthreads number of threads to use including the calling thread (these should created once and reused for multiple tasks)
  * @param verbose whether to print to standard out the number of unique values for each merged segment
- * @param outfile output FILE descriptor (either stdout or a output file)
+ * @param outfile outoutfile_nameput FILE descriptor (either stdout or a output file)
 */
 void stream_init() {
   outfile = open_outfile(outfile_name);
   // do awesome stuff
-  lock1 = malloc(sizeof(lock));
-  pthread_mutex_init(&lock1->ms, NULL);
-  pthread_cond_init(&lock1->cvs1, NULL);
-  pthread_cond_init(&lock1->cvs2, NULL); 
-  lock2 = malloc(sizeof(lock));
-  pthread_mutex_init(&lock2->ms, NULL);
-  pthread_cond_init(&lock2->cvs1, NULL);
-  pthread_cond_init(&lock2->cvs2, NULL); 
   
   int i;
 
   for(i = 1; i < nthreads; i++){
   	pthread_create(&tid[i], NULL, worker_funcs, NULL);
   }
-  worker_funcs(NULL);
+  data = malloc(1);
   
 }
 
 
-void* worker_funcs(void* arg) {
-  block * b;
-  while( (b = dequeues(queue_s, lock1, 0) ))  {
-    qsort(b->mydata, b->size, sizeof(int), compare_fns);   
-  	enqueues(b, queue_m, lock2, 1); 
-  	pthread_mutex_lock(&mm2);
-  	done ++;
-  	pthread_mutex_unlock(&mm2);
-  }
-  
-  while(done >= 2){
-  	pthread_mutex_lock(&mm2);
-  	done-=2;
-    pthread_mutex_unlock(&mm2);
-  	block * a =  dequeues(queue_m, lock2, 1);
-  	block * c =  dequeues(queue_m, lock2, 1);
-  	int midpt = a->size;
-  	int start = 0;
-  	int end = a->size + c->size;
-    block * d = malloc(sizeof(block));
-    d->size = end;
-    d->mydata = malloc(sizeof(block)*end);
-    int i;
-    for(i=0; i<a->size ; i++){
-       d->mydata[i] = a->mydata[i];
-       }
-    for(i = a->size; i<end; i++){
-    	d->mydata[i] = c->mydata[i-a->size];
-    }
-    int * scratch = (int*)malloc(sizeof(int)*(d->size));
-  	simple_merge(d->mydata, scratch, start, midpt, end);
-  	free(scratch);
-  	if((d->size == nitems) && F){
-  		enqueues(NULL, queue_m, lock2, 1);
-  		data = d->mydata;
-  		//for(i = 0, i )
-  		if(verbose) 
-           print_stat(data,start,end);
-  	}
-  	else{
-  		enqueues(b, queue_m, lock2, 1);
-  		pthread_mutex_lock(&mm2);
-  	    done++;
-        pthread_mutex_unlock(&mm2);
-  	}
-  }
-   
-  
-  return NULL;
-}
-
-/*
-void do_tasks(block* b) {
-
-  int midpt = (b->size)/2;
-  int len = b->size;
-  int start = 0;
-  int end = b->size;
-  
-  if(len <= 256){
-  	qsort(b->mydata, len, sizeof(int), compare_fns);   
-  	enqueue(b, queue_m, 1); 
-  	pthread_mutex_lock(&mm2);
-  	done ++;
-  	pthread_mutex_unlock(&mm2);
-  }
-  else{
-  	int * scratch = (int*)malloc(sizeof(int)*len);
-  	simple_merge(b->mydata, scratch, start, midpt, end)
-  	free(scratch);
-  	if((len == nitems) && F){
-  		enqueue(NULL, queue_m, 1);
-  		for
-  	}
-  	else{
-  		enqueue(b, queue_m, 1);
-  	}
-  
-  }
-  free(b);
-}
-
-
-*/
 
 /**
  * Additional data has arrived and is ready to be processed in the buffer. 
@@ -226,23 +141,16 @@ void do_tasks(block* b) {
  * @param count the number of items in the buffer (256 >= count > 0). This may be less than 256 for the last segment.
 */
 
+
 void stream_data(int* buffer, int count) {
   // You can already start sorting before the data is fully read into memory
   // do awesome stuff
- 
-  block * b = malloc(sizeof(block));
-  b->size = count;
-  b->mydata = malloc(sizeof(int)*count);
+  nitems+=count;
+  data = realloc(data, sizeof(int)*nitems);
   int i;
-  for(i=0; i<count ; i++)
-    b->mydata[i] = buffer[i];
-    
-  pthread_mutex_lock(&mm);
-  nitems += count;
-  pthread_mutex_unlock(&mm);
-  
-  enqueues(b, queue_s, lock1, 0);
-
+  for(i = 0; i < count; i++){
+  	data[nitems-count+i] = buffer[i];
+  }
 }
 
 
@@ -254,16 +162,19 @@ void stream_end() {
 // do awesome stuff
 // then print to outfile e.g.
 
-  enqueues(NULL, queue_s, lock1, 0);
-  F = 1;
-  for(int i = 1; i < nthreads; i++){
-	pthread_join(tid[i], NULL);
-  }
-
-  for(int i = 0; i < nitems;i++) 
+	create_task(NULL, 0, nitems);
+    worker_funcs(NULL);
+    int i;
+    for(i = 1; i < nthreads; i++){
+    	pthread_join(tid[i], NULL);
+    }
+    //printf("%d\n", data[0]);
+    //print_result(outfile_name, data, nitems);
+   
+   for(int i = 0; i < nitems ;i++) 
      fprintf(outfile,"%d\n", data[i]);
      
-  if(outfile != stdout) 
+   if(outfile != stdout) 
      fclose(outfile);
-    
+    free(data);
 }
