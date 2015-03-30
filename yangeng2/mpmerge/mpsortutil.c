@@ -88,7 +88,7 @@ void streaming_sort() {
   }
   if(i) 
     stream_data( buffer, i); // HAVE A BIT MORE DATA
-
+ 
   stream_end(); // DONE
   
   fclose(file);
