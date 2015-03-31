@@ -20,7 +20,7 @@
 
 static const int BUFFER_SIZE = 2048;  /**< Size of the buffer used by read_from_fd(). */
 
-pthread_t tid;
+//pthread_t tid;
 /**
  * Adds the key-value pair to the mapreduce data structure.  This may
  * require a reduce() operation.
@@ -239,7 +239,7 @@ void mapreduce_map_all(mapreduce_t *mr, const char **values)		//how to free the 
 		}
 	}
 	*/
-	pthread_create(&tid, NULL, (void *)worker_func, (void *)mr);
+	pthread_create(&mr->tid, NULL, (void *)worker_func, (void *)mr);
 }
 
 
@@ -249,7 +249,7 @@ void mapreduce_map_all(mapreduce_t *mr, const char **values)		//how to free the 
  */
 void mapreduce_reduce_all(mapreduce_t *mr)
 {
-	pthread_join(tid, NULL);
+	pthread_join(mr->tid, NULL);
 }
 
 

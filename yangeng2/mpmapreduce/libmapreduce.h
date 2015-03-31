@@ -20,6 +20,7 @@ typedef struct _mapreduce_t
 	int size;
 	datastore_t *ds;
 	char ** buffer;
+	pthread_t tid;
 
 } mapreduce_t;
 
