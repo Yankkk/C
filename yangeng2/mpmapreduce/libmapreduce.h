@@ -13,7 +13,14 @@
 typedef struct _mapreduce_t
 {
 	// You will need to add some stuff here! :)
-		
+	
+    void (*mapfunc)(int, const char *);
+	const char *(*reducefunc)(const char *, const char *);
+	int **pipe;
+	int size;
+	datastore_t *ds;
+	char ** buffer;
+
 } mapreduce_t;
 
 

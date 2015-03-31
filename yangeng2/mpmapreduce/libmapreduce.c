@@ -20,7 +20,7 @@
 
 static const int BUFFER_SIZE = 2048;  /**< Size of the buffer used by read_from_fd(). */
 
-
+pthread_t tid;
 /**
  * Adds the key-value pair to the mapreduce data structure.  This may
  * require a reduce() operation.
@@ -36,6 +36,22 @@ static const int BUFFER_SIZE = 2048;  /**< Size of the buffer used by read_from_
  */
 static void process_key_value(const char *key, const char *value, mapreduce_t *mr)
 {
+	unsigned long r;
+	const char * v = datastore_get(mr->ds, key, &r);
+	if(v == NULL)
+	{
+		datastore_put(mr->ds, key, value);
+		free((void*)value);
+		free((void*)key);
+	}	
+	else{
+		const char * new_v = mr->reducefunc(v, value);
+		datastore_update(mr->ds, key, new_v, r);
+		free((void*)v);
+		free((void*)new_v);
+		free((void*)key);
+		free((void*)value);
+	}
 }
 
 
@@ -114,12 +130,46 @@ static int read_from_fd(int fd, char *buffer, mapreduce_t *mr)
 
 		/* Shift the contents of the buffer to remove the space used by the processed line. */
 		memmove(buffer, line + 1, BUFFER_SIZE - ((line + 1) - buffer));
-		buffer[BUFFER_SIZE - ((line + 1) - buffer)] = '\0';
+	buffer[BUFFER_SIZE - ((line + 1) - buffer)] = '\0';
 	}
 
 	return 1;
 }
 
+
+void * worker_func(void * arg)
+{
+	mapreduce_t * mr = (mapreduce_t*)arg;
+	fd_set set1, set2;
+	FD_ZERO(&set1);
+	FD_ZERO(&set2);
+	
+	int remain = mr->size;
+	mr->buffer = malloc(sizeof(char*)*(mr->size));
+	int i;
+	for(i = 0; i < mr->size; i++){
+		FD_SET(mr->pipe[i][0], &set1);
+		mr->buffer[i] = malloc(sizeof(char) * (BUFFER_SIZE+1));
+		mr->buffer[i][0] = '\0';
+	}
+	
+	while(remain>0){
+		set2 = set1;
+		select(FD_SETSIZE, &set2, NULL, NULL, NULL);
+
+		for(i = 0; i < mr->size; i++){
+			if(FD_ISSET(mr->pipe[i][0], &set2)){
+				int k = read_from_fd(mr->pipe[i][0], mr->buffer[i], mr);
+				if(k == 0){
+					close(mr->pipe[i][0]);
+					FD_CLR(mr->pipe[i][0], &set1);
+					remain--;
+				}
+			}
+		}
+	}
+	return NULL;
+}
 
 /**
  * Initialize the mapreduce data structure, given a map and a reduce
@@ -129,6 +179,13 @@ void mapreduce_init(mapreduce_t *mr,
                     void (*mymap)(int, const char *), 
                     const char *(*myreduce)(const char *, const char *))
 {	
+	mr->mapfunc = mymap;
+	mr->reducefunc = myreduce;
+	mr->pipe = NULL;
+	mr->size = 0;
+	mr->ds = (datastore_t *)malloc(sizeof(datastore_t));
+	datastore_init(mr->ds);
+
 }
 
 
@@ -136,8 +193,37 @@ void mapreduce_init(mapreduce_t *mr,
  * Starts the map() processes for each value in the values array.
  * (See the MP description for full details.)
  */
-void mapreduce_map_all(mapreduce_t *mr, const char **values)
+void mapreduce_map_all(mapreduce_t *mr, const char **values)		//how to free the values using mr or not?
 {
+
+	int size;
+	for(size=0; values[size] != 0 ; size++);
+	
+	mr->size = size;
+	
+	mr->pipe = (int **)malloc(sizeof(int *)*size);
+	
+	int i;
+	for(i=0; i<size; i++){
+		mr->pipe[i] = (int *)malloc(sizeof(int)*2);
+	}
+	
+	for(i=0; i<size; i++){
+		pipe(mr->pipe[i]);
+		pid_t pid;
+		if((pid=fork()) == 0){
+		/*child  do mapfunc */
+			close(mr->pipe[i][0]); 
+			mr->mapfunc(mr->pipe[i][1], values[i]);
+			exit(0);
+		}
+		else{
+		/* parent do reducefunc*/
+			close(mr->pipe[i][1]);
+
+		}
+	}
+	pthread_create(&tid, NULL, (void *)worker_func, (void *)mr);
 }
 
 
@@ -147,6 +233,7 @@ void mapreduce_map_all(mapreduce_t *mr, const char **values)
  */
 void mapreduce_reduce_all(mapreduce_t *mr)
 {
+	pthread_join(tid, NULL);
 }
 
 
@@ -156,13 +243,24 @@ void mapreduce_reduce_all(mapreduce_t *mr)
  */
 const char *mapreduce_get_value(mapreduce_t *mr, const char *result_key)
 {
-	return NULL;
+	unsigned long r;
+    return datastore_get(mr->ds,(char *)result_key, &r);
 }
 
 
 /**
- * Destroys the mapreduce data structure.
+ * Destroys the mapreduce data structure
  */
 void mapreduce_destroy(mapreduce_t *mr)
 {
+	
+	int i;
+	for(i=0; i<mr->size; i++){
+	    free(mr->pipe[i]);
+	    free(mr->buffer[i]);
+	}
+	free(mr->pipe);
+	free(mr->buffer);
+	datastore_destroy(mr->ds);
+	free(mr->ds);
 }
