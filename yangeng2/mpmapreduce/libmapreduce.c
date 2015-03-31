@@ -36,15 +36,15 @@ pthread_t tid;
  */
 static void process_key_value(const char *key, const char *value, mapreduce_t *mr)
 {
+
 	unsigned long r;
-	const char * v = datastore_get(mr->ds, key, &r);
-	if(v == NULL)
-	{
-		datastore_put(mr->ds, key, value);
+	
+	if(datastore_put(mr->ds, key, value)){
 		free((void*)value);
 		free((void*)key);
 	}	
 	else{
+		const char * v = datastore_get(mr->ds, key, &r);
 		const char * new_v = mr->reducefunc(v, value);
 		datastore_update(mr->ds, key, new_v, r);
 		free((void*)v);
@@ -52,6 +52,7 @@ static void process_key_value(const char *key, const char *value, mapreduce_t *m
 		free((void*)key);
 		free((void*)value);
 	}
+	return;
 }
 
 
@@ -253,7 +254,6 @@ const char *mapreduce_get_value(mapreduce_t *mr, const char *result_key)
  */
 void mapreduce_destroy(mapreduce_t *mr)
 {
-	
 	int i;
 	for(i=0; i<mr->size; i++){
 	    free(mr->pipe[i]);
