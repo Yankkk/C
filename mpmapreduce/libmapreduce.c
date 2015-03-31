@@ -209,21 +209,36 @@ void mapreduce_map_all(mapreduce_t *mr, const char **values)		//how to free the 
 		mr->pipe[i] = (int *)malloc(sizeof(int)*2);
 	}
 	
+	
 	for(i=0; i<size; i++){
 		pipe(mr->pipe[i]);
 		pid_t pid;
-		if((pid=fork()) == 0){
-		/*child  do mapfunc */
+		if((pid=fork()) == 0){ 
 			close(mr->pipe[i][0]); 
 			mr->mapfunc(mr->pipe[i][1], values[i]);
 			exit(0);
 		}
 		else{
-		/* parent do reducefunc*/
 			close(mr->pipe[i][1]);
-
 		}
 	}
+	
+	/*
+	pid_t pid = fork();
+	if(pid > 0){
+		for(i = 0; i < mr->size; i++){
+			close(mr->pipe[i][1]);
+			
+		}
+		pthread_create(&tid, NULL, (void *)worker_func, (void *)mr);
+	}
+	else{
+		for(i = 0; i < mr->size; i++){
+			close(mr->pipe[i][0]);
+			mr->mapfunc(mr->pipe[i][0], values[i]);
+		}
+	}
+	*/
 	pthread_create(&tid, NULL, (void *)worker_func, (void *)mr);
 }
 
