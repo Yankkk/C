@@ -20,8 +20,8 @@ public class MainActivity extends ActionBarActivity {
     Thread mReceiverThread;
 
     // Verify the semester is correct
-    // Change 239 to be your personal VM
-    public static String SERVER_ADDR = "sp15-cs241-239.cs.illinois.edu";
+    // Verify this is your CS241 VM
+    public static String SERVER_ADDR = "sp15-cs241-187.cs.illinois.edu";
     public static String SERVER_PORT = "123";
 
     static final SimpleDateFormat SDF = new SimpleDateFormat("hh:mm:ss");
