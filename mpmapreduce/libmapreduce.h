@@ -10,6 +10,8 @@
 #include <pthread.h>
 #include "libds/libds.h"
 
+
+
 typedef struct _mapreduce_t
 {
 	// You will need to add some stuff here! :)
@@ -21,9 +23,16 @@ typedef struct _mapreduce_t
 	datastore_t *ds;
 	char ** buffer;
 	pthread_t tid;
+	pthread_t ** t;
+	//block ** blocks;
 
 } mapreduce_t;
 
+typedef struct block{
+	const char * value;
+	int i;
+	mapreduce_t *mr;
+}block;
 
 /**
  * This function will be the first call made to the libmapreduce library. 

@@ -225,6 +225,7 @@ void mapreduce_map_all(mapreduce_t *mr, const char **values)		//how to free the 
 		if((pid=fork()) == 0){ 
 			close(mr->pipe[i][0]); 
 			mr->mapfunc(mr->pipe[i][1], values[i]);
+			close(mr->pipe[i][1]);
 			exit(0);
 		}
 		else{
