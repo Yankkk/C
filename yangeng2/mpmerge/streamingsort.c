@@ -259,7 +259,6 @@ void stream_end() {
     for(i = 1; i < nthreads; i++){
     	pthread_join(tid[i], NULL);
     }
-   
    for(int i = 0; i < nitems ;i++) 
      fprintf(outfile,"%d\n", data[i]);
      
