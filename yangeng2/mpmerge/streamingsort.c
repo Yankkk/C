@@ -166,8 +166,6 @@ void* worker_funcs(void* arg) {
 
   task_t * task;
   while( (task = mdequeue()))  {
-  		//scratch = (int *)realloc(scratch, sizeof(int)*nitems);
-    	//do_tasks(scratch, task);
     	int start = task->start;
     	int end = task->end;
     	int len = task->end - task->start;
