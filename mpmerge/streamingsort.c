@@ -106,7 +106,6 @@ void create_task(task_t*parent, int start, int end) {
     create_task(task,  start,  mid);
     create_task(task,  mid, end);
   } else {
-  	//task->completed_child_tasks = 2;
     enqueue(task);
   }
 }
