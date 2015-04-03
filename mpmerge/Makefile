@@ -101,7 +101,7 @@ timemulti: mpsort_opt data/rnd10mil.txt
 # Note this uses the optimized build of your program
 timestream: gen mpsort_opt data/rnd10mil.txt
 	time ./mpsort_opt -v -s -$(BIGTHREADCOUNT) data/rnd10mil.txt your_stream_out.txt > your_stream_verbose.txt
-	time ./mpsort_opt -v -$(BIGTHREADCOUNT) data/rnd10mil.txt your_out.txt > your_verbose.txt
+	time ./mpsort_opt -v -s -$(BIGTHREADCOUNT) data/rnd10mil.txt your_out.txt > your_verbose.txt
 	sort -n your_stream_verbose.txt  > your_stream_verbose_sorted.txt
 	sort -n your_verbose.txt > your_verbose_sorted.txt
 	diff your_out.txt your_stream_out.txt
