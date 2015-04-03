@@ -148,9 +148,10 @@ void do_tasks(int*scratch, task_t* task) {
   */
   if(len > 256){
   	simple_merge(data, scratch, start, mid, end);
-  }
-  if(verbose) 
+  	if(verbose) 
      print_stat(data,start,end);
+  }
+  
      
    if((len < nitems) && task->parent != NULL){
    		child_finisheds(scratch, task->parent);
@@ -168,8 +169,11 @@ void* worker_funcs(void* arg) {
   		//scratch = (int *)realloc(scratch, sizeof(int)*nitems);
     	//do_tasks(scratch, task);
     	int start = task->start;
+    	int end = task->end;
     	int len = task->end - task->start;
     	qsort(data +start,len,sizeof(int), compare_fns);
+    	if(verbose) 
+    		print_stat(data,start,end);
     	free(task);
   }
  
