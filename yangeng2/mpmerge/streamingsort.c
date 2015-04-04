@@ -53,7 +53,6 @@ void menqueue(task_t*task) {
 	pthread_mutex_unlock(&mq);
 }
 
-
 task_t* mdequeue() {
   //The special NULL (finished) stays in the queue
   // Once NULL is returned, dequeue will never block and will always immediately return NULL.
