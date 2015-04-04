@@ -23,16 +23,12 @@ typedef struct _mapreduce_t
 	datastore_t *ds;
 	char ** buffer;
 	pthread_t tid;
-	pthread_t ** t;
-	//block ** blocks;
-
+	pid_t pid;
+	struct epoll_event * event;
+	int epoll_fd;
+	
 } mapreduce_t;
 
-typedef struct block{
-	const char * value;
-	int i;
-	mapreduce_t *mr;
-}block;
 
 /**
  * This function will be the first call made to the libmapreduce library. 

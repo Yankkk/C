@@ -21,6 +21,14 @@
 
 static const int BUFFER_SIZE = 2048;  /**< Size of the buffer used by read_from_fd(). */
 
+typedef struct block{
+	const char * value;
+	void (*mapfunc)(int, const char *);
+	int fd;
+	int i;
+}block;
+
+
 //pthread_t tid;
 /**
  * Adds the key-value pair to the mapreduce data structure.  This may
@@ -142,42 +150,47 @@ static int read_from_fd(int fd, char *buffer, mapreduce_t *mr)
 void * worker_func(void * arg)
 {
 	mapreduce_t * mr = (mapreduce_t*)arg;
-	fd_set set1, set2;
-	FD_ZERO(&set1);
-	FD_ZERO(&set2);
-
+	
 	int remain = mr->size;
 	mr->buffer = malloc(sizeof(char*)*(mr->size));
 	
 	int i;
 	for(i = 0; i < mr->size; i++){
-		FD_SET(mr->pipe[i][0], &set1);
+		//FD_SET(mr->pipe[i][0], &set1);
 		mr->buffer[i] = malloc(sizeof(char) * (BUFFER_SIZE+1));
 		mr->buffer[i][0] = '\0';
 	
 	}
 	
 	i = 0;
+	int index = 0;
 	while(remain>0){
-		set2 = set1;
-		select(FD_SETSIZE, &set2, NULL, NULL, NULL);
+		struct epoll_event event;
+		epoll_wait(mr->epoll_fd, &event, 1, -1);
 
 		for(i = 0; i < mr->size; i++){
-			//struct epoll_event ev;
-			//epoll_wait(epoll_fd, &ev, 1, -1);
-			if(FD_ISSET(mr->pipe[i][0], &set2)){
-				int k = read_from_fd(mr->pipe[i][0], mr->buffer[i], mr);
-			//int k = read_from_fd(ev.data.fd, buffer[i], mr);
-			//i ++;
-				if(k == 0){
-					close(mr->pipe[i][0]);
-					FD_CLR(mr->pipe[i][0], &set1);
-					remain--;
-				}
-			}
+		
+			if(event.data.fd == mr->event[i].data.fd){
+					index = i;
+					break;
+			}		
+		}		
+		int k = read_from_fd(event.data.fd, mr->buffer[index], mr);
+			
+	   if(k == 0){
+			epoll_ctl(mr->epoll_fd, EPOLL_CTL_DEL, event.data.fd, NULL);
+			remain--;
 		}
 	}
+	return NULL;
+}
 
+void * worker_map(void * arg){
+	block * temp = (block*)arg;
+	//printf("%p\n", temp->mapfunc);
+	temp->mapfunc(temp->fd, temp->value);
+	close(temp->fd);
+	free(temp);
 	return NULL;
 }
 
@@ -195,6 +208,7 @@ void mapreduce_init(mapreduce_t *mr,
 	mr->size = 0;
 	mr->ds = (datastore_t *)malloc(sizeof(datastore_t));
 	datastore_init(mr->ds);
+	mr->epoll_fd = 0;
 
 }
 
@@ -210,47 +224,42 @@ void mapreduce_map_all(mapreduce_t *mr, const char **values)		//how to free the 
 	for(size=0; values[size] != 0 ; size++);
 	
 	mr->size = size;
-	
 	mr->pipe = (int **)malloc(sizeof(int *)*size);
+	mr->epoll_fd = epoll_create(size);
+	mr->event = malloc(sizeof(struct epoll_event)*size);
 	
 	int i;
 	for(i=0; i<size; i++){
 		mr->pipe[i] = (int *)malloc(sizeof(int)*2);
-	}
-	
-	
-	for(i=0; i<size; i++){
 		pipe(mr->pipe[i]);
-		pid_t pid;
-		if((pid=fork()) == 0){ 
-			close(mr->pipe[i][0]); 
-			mr->mapfunc(mr->pipe[i][1], values[i]);
-			close(mr->pipe[i][1]);
-			exit(0);
-		}
-		else{
-			close(mr->pipe[i][1]);
-		}
-		
+		mr->event[i].events = EPOLLIN;
+		mr->event[i].data.fd = mr->pipe[i][0];
+		epoll_ctl(mr->epoll_fd, EPOLL_CTL_ADD, mr->pipe[i][0], &mr->event[i]);
 	}
 	
-	/*
-	pid_t pid = fork();
-	if(pid > 0){
+	mr->pid = fork();
+	if(mr->pid == 0){
+		pthread_t tids[size];
 		for(i = 0; i < mr->size; i++){
-			close(mr->pipe[i][1]);
-			
+			close(mr->pipe[i][0]);
+			block * temp = malloc(sizeof(block));
+			temp->value = values[i];
+			temp->mapfunc = mr->mapfunc;
+			temp->i = i;
+			temp->fd = mr->pipe[i][1];
+			pthread_create(&tids[i], NULL, (void *)worker_map, (void *)temp);
 		}
-		pthread_create(&tid, NULL, (void *)worker_func, (void *)mr);
+		for(i = 0; i < mr->size; i++){
+			pthread_join(tids[i], NULL);
+		}
+		exit(0);
 	}
 	else{
 		for(i = 0; i < mr->size; i++){
-			close(mr->pipe[i][0]);
-			mr->mapfunc(mr->pipe[i][0], values[i]);
+			close(mr->pipe[i][1]);
 		}
+		pthread_create(&mr->tid, NULL, (void *)worker_func, (void *)mr);
 	}
-	*/
-	pthread_create(&mr->tid, NULL, (void *)worker_func, (void *)mr);
 }
 
 
@@ -287,6 +296,8 @@ void mapreduce_destroy(mapreduce_t *mr)
 	}
 	free(mr->pipe);
 	free(mr->buffer);
+	free(mr->event);
 	datastore_destroy(mr->ds);
 	free(mr->ds);
+	
 }
