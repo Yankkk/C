@@ -91,8 +91,7 @@ void create_task(task_t*parent, int start, int end) {
   task->end = end;
   task->completed_child_tasks = 0;
   task->parent = parent;
-  
- // int mid = (end + start) / 2;
+
   int len = (end - start);
   /*
   int mid = ((len/256)/2 + (len/256)%2) * 256;
