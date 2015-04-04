@@ -25,7 +25,7 @@ typedef struct block{
 	const char * value;
 	void (*mapfunc)(int, const char *);
 	int fd;
-	int i;
+
 }block;
 
 
@@ -169,7 +169,6 @@ void * worker_func(void * arg)
 		epoll_wait(mr->epoll_fd, &event, 1, -1);
 
 		for(i = 0; i < mr->size; i++){
-		
 			if(event.data.fd == mr->event[i].data.fd){
 					index = i;
 					break;
@@ -209,6 +208,7 @@ void mapreduce_init(mapreduce_t *mr,
 	mr->ds = (datastore_t *)malloc(sizeof(datastore_t));
 	datastore_init(mr->ds);
 	mr->epoll_fd = 0;
+	mr->event = NULL;
 
 }
 
@@ -226,12 +226,13 @@ void mapreduce_map_all(mapreduce_t *mr, const char **values)		//how to free the 
 	mr->size = size;
 	mr->pipe = (int **)malloc(sizeof(int *)*size);
 	mr->epoll_fd = epoll_create(size);
-	mr->event = malloc(sizeof(struct epoll_event)*size);
-	
+	mr->event = malloc(sizeof(struct epoll_event) * size);
+	memset(mr->event, 0, (mr->size)*sizeof(struct epoll_event));
 	int i;
 	for(i=0; i<size; i++){
 		mr->pipe[i] = (int *)malloc(sizeof(int)*2);
 		pipe(mr->pipe[i]);
+		
 		mr->event[i].events = EPOLLIN;
 		mr->event[i].data.fd = mr->pipe[i][0];
 		epoll_ctl(mr->epoll_fd, EPOLL_CTL_ADD, mr->pipe[i][0], &mr->event[i]);
@@ -245,10 +246,11 @@ void mapreduce_map_all(mapreduce_t *mr, const char **values)		//how to free the 
 			block * temp = malloc(sizeof(block));
 			temp->value = values[i];
 			temp->mapfunc = mr->mapfunc;
-			temp->i = i;
+		
 			temp->fd = mr->pipe[i][1];
 			pthread_create(&tids[i], NULL, (void *)worker_map, (void *)temp);
 		}
+		
 		for(i = 0; i < mr->size; i++){
 			pthread_join(tids[i], NULL);
 		}
@@ -299,5 +301,4 @@ void mapreduce_destroy(mapreduce_t *mr)
 	free(mr->event);
 	datastore_destroy(mr->ds);
 	free(mr->ds);
-	
 }
