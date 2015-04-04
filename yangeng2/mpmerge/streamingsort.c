@@ -130,8 +130,7 @@ void do_tasks(int*scratch, task_t* task) {
   int end = task->end;
   
   int len = end - start;
-  //int mid = ((len/256)/2 + (len/256)%2)* 256;
-	int mid = (end + start)/2;
+  int mid = (end + start)/2;
 	/*
   	int re = mid % 256;
   	if(re){
