@@ -98,11 +98,11 @@ void create_task(task_t*parent, int start, int end) {
   int mid = ((len/256)/2 + (len/256)%2) * 256;
   */
   int mid = (end+start)/2;
-  int re = mid % 512;
+  int re = mid % 256;
   if(re){
-  	mid = mid - re + 512;
+  	mid = mid - re + 256;
   }
-  if(len > 512) {   //
+  if(len > 256) {   //
     create_task(task,  start,  mid);
     create_task(task,  mid, end);
   } else {
@@ -131,6 +131,7 @@ void do_tasks(int*scratch, task_t* task) {
   
   int len = end - start;
   //int mid = ((len/256)/2 + (len/256)%2)* 256;
+
   int mid = (end + start)/2;
   int re = mid % 256;
   if(re){
