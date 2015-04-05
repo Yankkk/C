@@ -245,7 +245,6 @@ void stream_data(int* buffer, int count) {
   menqueue(task); 
 }
 
-
 /**
  * All data has been delivered. Your implementation should now finish writing out sorted data and verbose info.
 * The output stream will be closed for you after this call returns
