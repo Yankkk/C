@@ -166,6 +166,7 @@ void do_tasks(int*scratch, task_t* task) {
 void* worker_funcs(void* arg) {
 
   task_t * task;
+  
   while( (task = mdequeue()))  {
     	int start = task->start;
     	int end = task->end;
