@@ -209,9 +209,7 @@ void* worker_funcs(void* arg) {
 void stream_init() {
   outfile = open_outfile(outfile_name);
   // do awesome stuff
-  
   int i;
-
   for(i = 1; i < nthreads; i++){
   	pthread_create(&tid[i], NULL, worker_funcs, NULL);
   }
