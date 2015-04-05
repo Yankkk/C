@@ -1,13 +1,13 @@
-<!DOCTYPE doctype html>
+<!DOCTYPE doctype>
 <html lang="en">
  <head>
-  <meta charset="utf-8">
-   <title>
-    GRADE REPORT
-   </title>
-   <!-- <link rel="stylesheet" href="style.css"> -->
-   <style>
-    nav, header, section, footer {
+  <meta charset="utf-8"/>
+  <title>
+   GRADE REPORT
+  </title>
+  <!-- <link rel="stylesheet" href="style.css"> -->
+  <style>
+   nav, header, section, footer {
 			text-align: center;
 			margin-left: auto;
 			margin-right: auto;
@@ -48,8 +48,7 @@
 			display: visible;
 			-webkit-animation: fadein 2s; /* Chrome, Safari, Opera */
 		}
-   </style>
-  </meta>
+  </style>
  </head>
  <body onhashchange="load();">
   <!-- Navigation -->
@@ -73,6 +72,9 @@
     </option>
     <option value="3">
      2015-04-04 05:34:14.132635
+    </option>
+    <option value="4">
+     2015-04-05 05:35:02.093362
     </option>
    </select>
    <button onclick="incrementResults(1)">
@@ -818,6 +820,189 @@ vex amd64-&gt;IR:   PFX.66=1 PFX.F2=0 PFX.F3=0
 ==18039== For counts of detected and suppressed errors, rerun with: -v
 ==18039== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 3 from 3)
 timeout: the monitored command dumped core
+      </textarea>
+     </div>
+    </div>
+    <div class="visible result" id="result_div">
+     <div class="two_column">
+      <h2 id="revision">
+       Revision: 14745
+      </h2>
+      <h2 id="timestamp">
+       Time: 2015-04-05 05:35:02.093362
+      </h2>
+     </div>
+     <br/>
+     <br/>
+     <br/>
+     <div id="testcase_div">
+      <div class="two_column">
+       <h3 id="testcase">
+        TestCase: test1
+       </h3>
+       <h3 class="pass" id="score">
+        Score: 10.0
+       </h3>
+      </div>
+      <h4>
+       Output Log
+      </h4>
+      <textarea cols="80" id="output_log" rows="15">
+       Checks letter counts
+      </textarea>
+     </div>
+     <div id="testcase_div">
+      <div class="two_column">
+       <h3 id="testcase">
+        TestCase: test2
+       </h3>
+       <h3 class="pass" id="score">
+        Score: 10.0
+       </h3>
+      </div>
+      <h4>
+       Output Log
+      </h4>
+      <textarea cols="80" id="output_log" rows="15">
+       Also counts letter, but more letters...
+      </textarea>
+     </div>
+     <div id="testcase_div">
+      <div class="two_column">
+       <h3 id="testcase">
+        TestCase: test3
+       </h3>
+       <h3 class="pass" id="score">
+        Score: 10.0
+       </h3>
+      </div>
+      <h4>
+       Output Log
+      </h4>
+      <textarea cols="80" id="output_log" rows="15">
+       Checks frequency of letters
+      </textarea>
+     </div>
+     <div id="testcase_div">
+      <div class="two_column">
+       <h3 id="testcase">
+        TestCase: test4
+       </h3>
+       <h3 class="pass" id="score">
+        Score: 10.0
+       </h3>
+      </div>
+      <h4>
+       Output Log
+      </h4>
+      <textarea cols="80" id="output_log" rows="15">
+       Counts how often a word appears
+      </textarea>
+     </div>
+     <div id="testcase_div">
+      <div class="two_column">
+       <h3 id="testcase">
+        TestCase: test5
+       </h3>
+       <h3 class="pass" id="score">
+        Score: 10.0
+       </h3>
+      </div>
+      <h4>
+       Output Log
+      </h4>
+      <textarea cols="80" id="output_log" rows="15">
+       Makes sure that threads complete strict total order...
+      </textarea>
+     </div>
+     <div id="testcase_div">
+      <div class="two_column">
+       <h3 id="testcase">
+        TestCase: memory
+       </h3>
+       <h3 class="pass" id="score">
+        Score: 10.0
+       </h3>
+      </div>
+      <h4>
+       Output Log
+      </h4>
+      <textarea cols="80" id="output_log" rows="15">
+       Checking for memory leaks...
+==1902== Memcheck, a memory error detector
+==1902== Copyright (C) 2002-2013, and GNU GPL'd, by Julian Seward et al.
+==1902== Using Valgrind-3.9.0 and LibVEX; rerun with -h for copyright info
+==1902== Command: ./mpmapreduce/svn/yangeng2/mpmapreduce/test4 mpmapreduce/shared_data/alice.txt
+==1902== 
+vex amd64-&gt;IR: unhandled instruction bytes: 0x66 0xF 0x1B 0x4 0x24 0x66 0xF 0x1B
+vex amd64-&gt;IR:   REX=0 REX.W=0 REX.R=0 REX.X=0 REX.B=0
+vex amd64-&gt;IR:   VEX=0 VEX.L=0 VEX.nVVVV=0x0 ESC=0F
+vex amd64-&gt;IR:   PFX.66=1 PFX.F2=0 PFX.F3=0
+==1902== valgrind: Unrecognised instruction at address 0x40152f7.
+==1902==    at 0x40152F7: _dl_runtime_resolve (in /usr/lib64/ld-2.17.so)
+==1902==    by 0x4E39A42: __pthread_initialize_minimal (in /usr/lib64/libpthread-2.17.so)
+==1902==    by 0x4E38408: ??? (in /usr/lib64/libpthread-2.17.so)
+==1902==    by 0xFFF000663: ???
+==1902==    by 0x76732F6563756464: ???
+==1902==    by 0x6E65676E61792F6D: ???
+==1902==    by 0x70616D706D2F3266: ???
+==1902==    by 0x742F656375646571: ???
+==1902==    by 0x6D706D0034747364: ???
+==1902==    by 0x6563756465727060: ???
+==1902==    by 0x5F6465726168732E: ???
+==1902==    by 0x696C612F61746163: ???
+==1902== Your program just tried to execute an instruction that Valgrind
+==1902== did not recognise.  There are two possible reasons for this.
+==1902== 1. Your program has a bug and erroneously jumped to a non-code
+==1902==    location.  If you are running Memcheck and you just saw a
+==1902==    warning about a bad jump, it's probably your program's fault.
+==1902== 2. The instruction is legitimate but Valgrind doesn't handle it,
+==1902==    i.e. it's Valgrind's fault.  If you think this is the case or
+==1902==    you are not sure, please let us know and we'll try to fix it.
+==1902== Either way, Valgrind will now raise a SIGILL signal which will
+==1902== probably kill your program.
+==1902== 
+==1902== Process terminating with default action of signal 4 (SIGILL)
+==1902==  Illegal opcode at address 0x40152F7
+==1902==    at 0x40152F7: _dl_runtime_resolve (in /usr/lib64/ld-2.17.so)
+==1902==    by 0x4E39A42: __pthread_initialize_minimal (in /usr/lib64/libpthread-2.17.so)
+==1902==    by 0x4E38408: ??? (in /usr/lib64/libpthread-2.17.so)
+==1902==    by 0xFFF000663: ???
+==1902==    by 0x76732F6563756464: ???
+==1902==    by 0x6E65676E61792F6D: ???
+==1902==    by 0x70616D706D2F3266: ???
+==1902==    by 0x742F656375646571: ???
+==1902==    by 0x6D706D0034747364: ???
+==1902==    by 0x6563756465727060: ???
+==1902==    by 0x5F6465726168732E: ???
+==1902==    by 0x696C612F61746163: ???
+==1902== valgrind: Unrecognised instruction at address 0x40152f7.
+==1902==    at 0x40152F7: _dl_runtime_resolve (in /usr/lib64/ld-2.17.so)
+==1902==    by 0x4A246B4: _vgnU_freeres (in /usr/lib64/valgrind/vgpreload_core-amd64-linux.so)
+==1902== Your program just tried to execute an instruction that Valgrind
+==1902== did not recognise.  There are two possible reasons for this.
+==1902== 1. Your program has a bug and erroneously jumped to a non-code
+==1902==    location.  If you are running Memcheck and you just saw a
+==1902==    warning about a bad jump, it's probably your program's fault.
+==1902== 2. The instruction is legitimate but Valgrind doesn't handle it,
+==1902==    i.e. it's Valgrind's fault.  If you think this is the case or
+==1902==    you are not sure, please let us know and we'll try to fix it.
+==1902== Either way, Valgrind will now raise a SIGILL signal which will
+==1902== probably kill your program.
+==1902== 
+==1902== Process terminating with default action of signal 4 (SIGILL)
+==1902==  Illegal opcode at address 0x40152F7
+==1902==    at 0x40152F7: _dl_runtime_resolve (in /usr/lib64/ld-2.17.so)
+==1902==    by 0x4A246B4: _vgnU_freeres (in /usr/lib64/valgrind/vgpreload_core-amd64-linux.so)
+==1902== 
+==1902== HEAP SUMMARY:
+==1902==     in use at exit: 0 bytes in 0 blocks
+==1902==   total heap usage: 0 allocs, 0 frees, 0 bytes allocated
+==1902== 
+==1902== All heap blocks were freed -- no leaks are possible
+==1902== 
+==1902== For counts of detected and suppressed errors, rerun with: -v
+==1902== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 3 from 3)
       </textarea>
      </div>
     </div>
