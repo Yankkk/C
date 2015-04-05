@@ -175,7 +175,7 @@ void* worker_funcs(void* arg) {
     		print_stat(data,start,end);
     	free(task);
   }
- 
+ /*
   pthread_mutex_lock(&mt);
   if(!merge){
   	while(!merge){
@@ -192,10 +192,20 @@ void* worker_funcs(void* arg) {
     do_tasks(scratch, task);
   }
   free(scratch);
+  */
   return NULL;
 }
 
-
+void * worker_merge(void* arg){
+	task_t * task;
+	
+	int * scratch = malloc(nitems * sizeof(int));
+ 	while( (task = dequeue()))  {
+    do_tasks(scratch, task);
+  	}
+  free(scratch);
+  return NULL;
+}
 
 
 /**
@@ -259,9 +269,19 @@ void stream_end() {
 	menqueue(NULL);
 	merge = 1;
     int i;
-  	create_task(NULL, 0, nitems);
+  	
     worker_funcs(NULL);
     for(i = 1; i < nthreads; i++){
+    	pthread_join(tid[i], NULL);
+    }
+    
+  for(i = 1; i < nthreads; i++){
+  	pthread_create(&tid[i], NULL, worker_merge, NULL);
+  }
+  
+  create_task(NULL, 0, nitems);
+  worker_merge(NULL);
+  for(i = 1; i < nthreads; i++){
     	pthread_join(tid[i], NULL);
     }
    for(int i = 0; i < nitems ;i++) 
