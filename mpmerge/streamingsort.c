@@ -278,7 +278,6 @@ void stream_end() {
   for(i = 1; i < nthreads; i++){
   	pthread_create(&tid[i], NULL, worker_merge, NULL);
   }
-  
   create_task(NULL, 0, nitems);
   worker_merge(NULL);
   for(i = 1; i < nthreads; i++){
