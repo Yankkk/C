@@ -8,7 +8,7 @@ LIBS = -lpthread
 
 OBJECTS = libds.o libmapreduce.o
 
-all: alice.txt test1 test2 test3 test4 test5 test6 part2
+all: alice.txt test1 test2 test3 test4 test5 part2
 
 alice.txt:
 	wget https://courses.engr.illinois.edu/cs241/mp/alice.txt
@@ -28,8 +28,7 @@ test4: $(OBJECTS) test4.c
 test5: $(OBJECTS) test5.c
 	$(CC) $(FLAGS) $^ -o $@ $(LIBS)
 
-test6: $(OBJECTS) test6.c
-	$(CC) $(FLAGS) $^ -o $@ $(LIBS)
+
 
 part2: $(OBJECTS) sql.o part2.o part2main.c
 	$(CC) $(FLAGS) $^ -o $@ $(LIBS)
@@ -47,4 +46,4 @@ sql.o: sql.c sql.h
 	$(CC) -c $(FLAGS) $(INC) $< -o $@ $(LIBS)
 
 clean:
-	rm -rf *.o *.d test1 test2 test3 test4 test5 test6 part2 *~
+	rm -rf *.o *.d test1 test2 test3 test4 test5 part2 *~
