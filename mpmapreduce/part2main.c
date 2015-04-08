@@ -39,6 +39,7 @@ int main(int argc, char *argv[])
 
     printQueryResults(&mr, TEST_CASE);
     mapreduce_destroy(&mr);
+
     free(data->values);
     free(data);
     free(QUERY->selected_columns);
