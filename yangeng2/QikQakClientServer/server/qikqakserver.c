@@ -22,6 +22,7 @@
 // unused by any service on the VM
 
 #define PORT "123"
+#define SECRET 'W'
 
 char chat_log[HISTORY][MESG_SIZE];
 int chat_head;
@@ -33,11 +34,24 @@ int chat_head;
 void* process_client(void* arg) {
     int client_fd = (intptr_t) arg;
     pthread_detach(pthread_self()); // no join() required
-
+  /*  
+    char buffer[1];
+    int len = read(client_fd, buffer, 1);
+    if(buffer[0] != 'W'){
+    	write(client_fd, "NOT VALID\n", strlen(10));
+    	close(client_fd);
+    	return NULL;
+    }
+*/
     while(1) {
 
         char buffer[MESG_SIZE];
         int len = read(client_fd, buffer, MESG_SIZE-1);
+        if(buffer[0]!= 'W'){
+        	//write(client_fd, "NOT VALID\n", strlen(10));
+        	printf("not valid\n");
+    		break;
+        }
         if(len <1) break;  // Error or client closed the connection, so time to close this specific client connection
 
 // Basic pattern of many servers: First we process the input request  (in this demo we just store the bytes)
@@ -117,6 +131,8 @@ int main(int argc, char** argv)
     }
 
     struct sockaddr_in * result_addr = (struct sockaddr_in*) result->ai_addr;
+    //////
+   
     printf("Listening on file descriptor %d, port %d\n", sock_fd, ntohs(result_addr->sin_port));
 
     while(1) {
