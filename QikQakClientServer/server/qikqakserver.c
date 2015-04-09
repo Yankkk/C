@@ -136,7 +136,7 @@ int main(int argc, char** argv)
     //////
    
     printf("Listening on file descriptor %d, port %d\n", sock_fd, ntohs(result_addr->sin_port));
-
+	printf("address %d\n", result->ai_addr);
     while(1) {
         puts("Waiting for connection...\n");
 
