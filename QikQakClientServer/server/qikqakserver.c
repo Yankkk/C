@@ -141,7 +141,7 @@ int main(int argc, char** argv)
         puts("Waiting for connection...\n");
 		struct sockaddr_in addr;
 		socklen_t add_l = sizeof(addr);
-        int client_fd = accept(sock_fd, (sockaddr *)&addr, &add_l);
+        int client_fd = accept(sock_fd, (struct sockaddr *)&addr, &add_l);
 		printf("%s\n", inet_ntoa(addr.sin_addr));
         if(client_fd == -1) {
             perror("accept");
