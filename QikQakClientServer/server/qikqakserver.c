@@ -136,12 +136,13 @@ int main(int argc, char** argv)
     //////
    
     printf("Listening on file descriptor %d, port %d\n", sock_fd, ntohs(result_addr->sin_port));
-	printf("address %d\n", result->ai_addr);
+	//printf("address %d\n", result->ai_addr);
     while(1) {
         puts("Waiting for connection...\n");
-
-        int client_fd = accept(sock_fd, NULL, NULL);
-
+		struct sockaddr_in addr;
+		socklen_t add_l = sizeof(addr);
+        int client_fd = accept(sock_fd, (sockaddr *)&addr, &add_l);
+		printf("%s\n", inet_ntoa(addr.sin_addr));
         if(client_fd == -1) {
             perror("accept");
             sleep(1);
