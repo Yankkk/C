@@ -107,6 +107,7 @@ void create_task(task_t*parent, int start, int end) {
     enqueue(task);
   }
 }
+
 void do_tasks(int*scratch, task_t* task);
 
 void child_finisheds(int* scratch, task_t* task) {
