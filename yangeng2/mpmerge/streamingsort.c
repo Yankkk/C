@@ -164,6 +164,27 @@ void do_tasks(int*scratch, task_t* task) {
   free(task);
 }
 
+void quick(int * data, int i, int j){
+	int m, n, temp;
+	m = i;
+	n = j;	
+	int k = data[(i+j)/2];
+	do{
+		while(data[m]<k && m<j) m++;
+		while(data[n]>k && n>i) n--;
+		if(m<=n){
+			temp = data[m];
+			data[m] = data[n];
+			data[n] = temp;
+			m++;
+			n--;
+		}
+	
+	}while(m<=n);
+	if(m<j) quick(data, m, j);
+	if(n>i) quick(data, i, n);
+}
+
 void* worker_funcs(void* arg) {
 
   task_t * task;
@@ -172,7 +193,8 @@ void* worker_funcs(void* arg) {
     	int start = task->start;
     	int end = task->end;
     	int len = task->end - task->start;
-    	qsort(data +start,len,sizeof(int), compare_fns);
+    	//qsort(data +start,len,sizeof(int), compare_fns);
+    	quick(data, start, end-1);
     	if(verbose) 
     		print_stat(data,start,end);
     	free(task);
@@ -269,14 +291,16 @@ void stream_end() {
 // then print to outfile e.g.
 
 	menqueue(NULL);
-	merge = 1;
+	//merge = 1;
+	//create_task(NULL, 0, nitems);
     int i;
   	
     worker_funcs(NULL);
     for(i = 1; i < nthreads; i++){
     	pthread_join(tid[i], NULL);
     }
-    
+    merge = 1;
+    //create_task(NULL, 0, nitems);
     for(i = 1; i < nthreads; i++){
   	pthread_create(&tid[i], NULL, worker_merge, NULL);
   }
