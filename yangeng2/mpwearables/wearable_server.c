@@ -87,10 +87,15 @@ void* wearable_processor_thread(void* args) {
 	//Use a buffer of length 64!
 	//TODO read data from the socket until -1 is returned by read
 	
-	//char buffer[64]
-	//while (recev(socketfd, buffer, 64) > 0) ...
-
-
+	char buffer[64];
+	while (recev(socketfd, buffer, 64) > 0){
+		unsigned long timestamp;
+		SampleData* ret;
+		extract_key(buffer, &timestamp, &ret);
+		pthread_mutex_lock(&queue_lock_);
+		queue_insert(receieved_data_, timestamp, (void*) ret);
+		pthread_mutex_unlock(&queue_lock_)
+	}
 	close(socketfd);
 	return NULL;
 }
@@ -98,12 +103,26 @@ void* wearable_processor_thread(void* args) {
 void* user_request_thread(void* args) {
 	int socketfd = *((int*)args);
 	int i, ret;
+	int size;
+	timestamp_entry* results;
 
 	//TODO rread data from the socket until -1 is returned by read
 	//Requests will be in the form
 	//<timestamp1>:<timestamp2>, then write out statiticcs for data between
 	//those timestamp ranges
-
+	
+	char buffer[200];
+	while(recev(socketfd, buffer, 200) > 0){
+		unsigned long start;
+		unsigned long end;
+		scanf(buffer, "<%d>:<%d>", &start, &end);
+		pthread_mutex_lock(&queue_lock_);
+		results = queue_gather(&receieved_data_, start, end, compare, &size);
+		pthread_mutex_unlock(&queue_lock_);
+	}
+	write_result(socketfd, TYPE1, results, size);
+	write_result(socketfd, TYPE2, results, size);
+	write_result(socketfd, TYPE3, results, size);
 	close(socketfd);
 	return NULL;
 }
@@ -113,12 +132,37 @@ void* user_request_thread(void* args) {
 //serversocket file descriptor and return it
 int open_server_socket(const char* port) {
 	//TODO
+	int s;
+	int sock_fd = socket(AF_INET, SOCK_STREAM, 0);
+	struct addrinfo hints, *result;
+	memset(&hints, 0, sizeof(struct addrinfo));
+	hints.ai_family = AF_INET;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_flags = AI_PASSIVE;
+	
+	s = getaddrinfo(NULL, port, &hints, &result);
+	if(s != 0){
+		fprintf(stderr, "getaddrinfpr: %s\n", gai_strerror(s));
+		exit(1);
+	}
+	if(bind(sock_fd, result->ai_addr, result->ai_addrlen) != 0){
+		perror("bind()");
+		exit(1);
+	}
+	if(listen(sock_fd, 40)!=0){
+		perror("listen()");
+		exit(1);
+	}
 
-	return 0;
+	return sock_fd;
 }
 
 void signal_received(int sig) {
 	//TODO close server socket, free anything you dont free in main
+	close(wearable_server_fd);
+	//free();  
+	queue_destroy(&receieved_data_, int free_data);
+	return;
 }
 
 int main(int argc, const char* argv[]) {
@@ -128,6 +172,7 @@ int main(int argc, const char* argv[]) {
 	}
 
 	//TODO setup sig handler for SIGINT
+	signal(SIGINT, signal_received);
 	
 	int request_server_fd = open_server_socket(argv[2]);
 	wearable_server_fd = open_server_socket(argv[1]);
@@ -141,10 +186,16 @@ int main(int argc, const char* argv[]) {
 	pthread_mutex_init(&queue_lock_, NULL);
 
 	//TODO accept continous requests
-
-
-
+	while(1){
+		int wearable_socket = accept(wearable_server_fd, NULL, NULL);
+		
+		pthread_create(&, NULL, wearable_processor_thread, &wearable_socket);
+	}
+	
 	//TODO join all threads we spawned from the wearables
+	for(){
+		pthread_join();
+	}
 
 	pthread_join(request_thread, NULL);
 	queue_destroy(&receieved_data_, 1);
