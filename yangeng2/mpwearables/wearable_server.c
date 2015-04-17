@@ -24,9 +24,6 @@ pthread_mutex_t queue_lock_;
 //a queue for all received data... 
 queue_t receieved_data_;
 
-//
-
-
 
 typedef struct SampleData {
 
@@ -95,17 +92,16 @@ void* wearable_processor_thread(void* args) {
 	//Use a buffer of length 64!
 	//TODO read data from the socket until -1 is returned by read
 	
-	//realloc data_array by +1
 	pthread_mutex_lock(&queue_lock_);
 	int current = num;
 	int count=0;
 	data_array=realloc(data_array,sizeof(long)*(num+1));
 	num++;
 	pthread_mutex_unlock(&queue_lock_);
-
+	// reallocate data_array
 	char buffer[64];
 	while (recv(socketfd, buffer, 64,0) > 0){
-		//printf(" length: %d",length);
+
 		unsigned long timestamp;
 		SampleData *ret;
 		extract_key(buffer,&timestamp,&ret);
@@ -118,14 +114,14 @@ void* wearable_processor_thread(void* args) {
 		pthread_cond_broadcast(&cv);	
 		count++;
 	}
-	
+	// close the file
 	close(socketfd);
 	data_array[current]=-1;
-
+	// save the last entry as -1
 	pthread_cond_broadcast(&cv);
 	return NULL;
 }
-
+// determine whether get the last timestamp
 int time_send_data(long* data_array,int num, long final_timestamp){
 	int i;
 	for(i=0;i<num;i++){
@@ -136,6 +132,7 @@ int time_send_data(long* data_array,int num, long final_timestamp){
 	return 1;
 }
 
+// selectors
 int selector1(void* entry){
 	SampleData* ret =(SampleData*)entry;
 	if(strcmp(TYPE1,ret->type_)==0){
@@ -181,7 +178,7 @@ void* user_request_thread(void* args) {
 		while(time_send_data(data_array,num,end)!=1){
 			pthread_cond_wait(&cv,&queue_lock_);
 		}
-		//printf("the size of data: %d\n",total);
+		
 		int size1,size2,size3;
 		timestamp_entry* results1 = queue_gather(&receieved_data_,(unsigned long)start,(unsigned long)end, selector1,&size1);
 		timestamp_entry* results2 = queue_gather(&receieved_data_,(unsigned long)start,(unsigned long)end, selector2,&size2);
@@ -190,6 +187,7 @@ void* user_request_thread(void* args) {
 		write_results(socketfd,TYPE2,results2,size2);
 		write_results(socketfd,TYPE3,results3,size3);
 		write(socketfd,"\r\n",2);
+		// write to file
 		pthread_mutex_unlock(&queue_lock_);
 		
 		free(results1);
