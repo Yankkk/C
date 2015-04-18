@@ -194,7 +194,7 @@ void insertquick(int * data, int i, int j){
 	int m, n, temp;
 	m = i;
 	n = j;
-	if((n-m) <= 128){
+	if((n-m) <= 64){
 		insert(data, m, n);
 		return;
 	}
@@ -244,6 +244,7 @@ void* worker_funcs(void* arg) {
     	int len = task->end - task->start;
     	//qsort(data +start,len,sizeof(int), compare_fns);
     	//quick(data, start, end-1); 
+    	//insert(data, start, end-1);
     	insertquick(data, start, end-1);
     	if(verbose) 
     		print_stat(data,start,end);
