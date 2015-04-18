@@ -185,6 +185,55 @@ void quick(int * data, int i, int j){
 	if(n>i) quick(data, i, n);
 }
 
+
+void insertquick(int * data, int i, int j);
+void insert(int * data, int start, int end); 
+
+
+void insertquick(int * data, int i, int j){
+	int m, n, temp;
+	m = i;
+	n = j;
+	if((n-m) <= 128){
+		insert(data, m, n);
+		return;
+	}
+	
+	int k = data[(i+j)/2];
+	do{
+		while(data[m]<k && m<j) m++;
+		while(data[n]>k && n>i) n--;
+		if(m<=n){
+			temp = data[m];
+			data[m] = data[n];
+			data[n] = temp;
+			m++;
+			n--;
+		}
+	
+	}while(m<=n);
+	if(m<j) quick(data, m, j);
+	if(n>i) quick(data, i, n);
+
+}
+
+void insert(int * data, int start, int end){
+	int i, j, temp;
+	int n = end - start;
+	
+	for(i = 1; i < n; i++){
+		temp = data[i+start];
+		j = i-1;
+		while(j >= 0 && temp < data[start+j]){
+			data[start+j+1] = data[start+j];
+			j--;
+		}
+		data[start+j+1] = temp;
+	
+	}
+
+}
+
 void* worker_funcs(void* arg) {
 
   task_t * task;
@@ -194,7 +243,8 @@ void* worker_funcs(void* arg) {
     	int end = task->end;
     	int len = task->end - task->start;
     	//qsort(data +start,len,sizeof(int), compare_fns);
-    	quick(data, start, end-1);
+    	//quick(data, start, end-1); 
+    	insertquick(data, start, end-1);
     	if(verbose) 
     		print_stat(data,start,end);
     	free(task);
