@@ -81,10 +81,11 @@ void extract_key(char* line, long* timestamp, SampleData** ret) {
 	sscanf(line, "%zu:%i:%[^:]%:\\.*", timestamp, &((*ret)->data_), (*ret)->type_);
 }
 
+pthread_cond_t cv = PTHREAD_COND_INITIALIZER;
 unsigned long *data_array;
 int total;
 int num;
-pthread_cond_t cv = PTHREAD_COND_INITIALIZER;
+
 
 void* wearable_processor_thread(void* args) {
 	//int socketfd = *((int*)args);
@@ -220,7 +221,7 @@ int open_server_socket(const char* port) {
 		exit(1);
 	}
 	int optval = 1;
-	setsockopt(sock_fd,SOL_SOCKET,SO_REUSEPORT,&optval,sizeof(optval));
+	setsockopt(sock_fd,SOL_SOCKET,SO_REUSEPORT,&optval,sizeof(optval));  // reuse of the ports
 	if(bind(sock_fd,result->ai_addr,result->ai_addrlen)!=0){
 		perror("bind");
 		exit(1);
