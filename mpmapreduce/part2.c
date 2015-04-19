@@ -41,9 +41,16 @@ void map(int fd, const char *data)
 		    free(s);
    			}
    			else{
-   				char st[100];
-   				int len = snprintf(st, 100, "%s: %s\n", v[QUERY->group_by_column], v[QUERY->aggregate_func_column]);
-   		    	write(fd, st, len);
+   				if(QUERY->func == COUNT){
+   					char st[100];
+   					int len = snprintf(st, 100, "%s: %s\n", v[QUERY->group_by_column], "1");
+   					write(fd, st, len);
+   				}
+   				else{
+   					char st[100];
+   					int len = snprintf(st, 100, "%s: %s\n", v[QUERY->group_by_column], v[QUERY->aggregate_func_column]);
+   		    		write(fd, st, len);
+   		    	}
    			}
    		
    			for(k=0; k< num;k++){
