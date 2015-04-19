@@ -121,6 +121,9 @@
     <option value="19">
      2015-04-19 03:32:13.853779
     </option>
+    <option value="20">
+     2015-04-19 13:27:01.076593
+    </option>
    </select>
    <button onclick="incrementResults(1)">
     Next Results
@@ -4095,6 +4098,234 @@ Successfully compiled your code..
 ==17954== 
 ==17954== For counts of detected and suppressed errors, rerun with: -v
 ==17954== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 2 from 2)
+      </textarea>
+     </div>
+    </div>
+    <div class="visible result" id="result_div">
+     <div class="two_column">
+      <h2 id="revision">
+       Revision: 17351
+      </h2>
+      <h2 id="timestamp">
+       Time: 2015-04-19 13:27:01.076593
+      </h2>
+     </div>
+     <br/>
+     <br/>
+     <br/>
+     <div class="testcase" id="testcase_div">
+      <div class="two_column">
+       <h3 id="testcase">
+        TestCase: test1
+       </h3>
+       <h3 class="pass" id="score">
+        Score: 10.0
+       </h3>
+      </div>
+      <h4>
+       Output Log
+      </h4>
+      <textarea cols="80" id="output_log" rows="15">
+       Running the query: 
+SELECT *
+Successfully compiled your code..
+Successfully got everything from the database!
+      </textarea>
+     </div>
+     <div class="testcase" id="testcase_div">
+      <div class="two_column">
+       <h3 id="testcase">
+        TestCase: test2
+       </h3>
+       <h3 class="pass" id="score">
+        Score: 10.0
+       </h3>
+      </div>
+      <h4>
+       Output Log
+      </h4>
+      <textarea cols="80" id="output_log" rows="15">
+       Running the query: 
+SELECT $1, $3
+Successfully compiled your code..
+Successfully selected columns 1 and 3 from database!
+      </textarea>
+     </div>
+     <div class="testcase" id="testcase_div">
+      <div class="two_column">
+       <h3 id="testcase">
+        TestCase: test3
+       </h3>
+       <h3 class="pass" id="score">
+        Score: 10.0
+       </h3>
+      </div>
+      <h4>
+       Output Log
+      </h4>
+      <textarea cols="80" id="output_log" rows="15">
+       Running the query: 
+SELECT * 
+WHERE $3 &gt; 4000
+Successfully compiled your code..
+Successfully got all entries where income is greater than 4000!
+      </textarea>
+     </div>
+     <div class="testcase" id="testcase_div">
+      <div class="two_column">
+       <h3 id="testcase">
+        TestCase: test4
+       </h3>
+       <h3 class="pass" id="score">
+        Score: 10.0
+       </h3>
+      </div>
+      <h4>
+       Output Log
+      </h4>
+      <textarea cols="80" id="output_log" rows="15">
+       Running the query: 
+SELECT * 
+WHERE $3 &gt; 999999
+Successfully compiled your code..
+Successfully got all people who make more than $999999
+      </textarea>
+     </div>
+     <div class="testcase" id="testcase_div">
+      <div class="two_column">
+       <h3 id="testcase">
+        TestCase: test5
+       </h3>
+       <h3 class="fail" id="score">
+        Score: 0.0
+       </h3>
+      </div>
+      <h4>
+       Output Log
+      </h4>
+      <textarea cols="80" id="output_log" rows="15">
+       Running the query: 
+SELECT COUNT(*)
+WHERE $2 = 'A' (grade)
+GROUP BY $4 (state)
+Successfully compiled your code..
+RESULTS DIFFERED FROM SOLUTION!
+      </textarea>
+     </div>
+     <div class="testcase" id="testcase_div">
+      <div class="two_column">
+       <h3 id="testcase">
+        TestCase: test6
+       </h3>
+       <h3 class="pass" id="score">
+        Score: 10.0
+       </h3>
+      </div>
+      <h4>
+       Output Log
+      </h4>
+      <textarea cols="80" id="output_log" rows="15">
+       Running the query: 
+SELECT TOP3($3)
+GROUP BY $2 (Grade)
+Successfully compiled your code..
+Successfully the top 3 income earners for each grade!
+      </textarea>
+     </div>
+     <div class="testcase" id="testcase_div">
+      <div class="two_column">
+       <h3 id="testcase">
+        TestCase: test7
+       </h3>
+       <h3 class="pass" id="score">
+        Score: 10.0
+       </h3>
+      </div>
+      <h4>
+       Output Log
+      </h4>
+      <textarea cols="80" id="output_log" rows="15">
+       Running the query: 
+SELECT SUM($3)
+GROUP BY $2
+Successfully compiled your code..
+Successfully got total income for each grade!
+      </textarea>
+     </div>
+     <div class="testcase" id="testcase_div">
+      <div class="two_column">
+       <h3 id="testcase">
+        TestCase: test8
+       </h3>
+       <h3 class="pass" id="score">
+        Score: 10.0
+       </h3>
+      </div>
+      <h4>
+       Output Log
+      </h4>
+      <textarea cols="80" id="output_log" rows="15">
+       Running the query: 
+SELECT MAX($3) (Income)
+WHERE $2 = 'A' (grade)
+GROUP BY $2 (grade)
+Successfully compiled your code..
+Successfully got the richest 'A' student!
+      </textarea>
+     </div>
+     <div class="testcase" id="testcase_div">
+      <div class="two_column">
+       <h3 id="testcase">
+        TestCase: memory leaks
+       </h3>
+       <h3 class="pass" id="score">
+        Score: 20.0
+       </h3>
+      </div>
+      <h4>
+       Output Log
+      </h4>
+      <textarea cols="80" id="output_log" rows="15">
+       Checking for memory leaks...
+Successfully compiled your code..
+==15802== Memcheck, a memory error detector
+==15802== Copyright (C) 2002-2013, and GNU GPL'd, by Julian Seward et al.
+==15802== Using Valgrind-3.10.0 and LibVEX; rerun with -h for copyright info
+==15802== Command: ./mpmapreduce/svn/yangeng2/mpmapreduce/part2 1
+==15802== 
+==15803== 
+==15803== HEAP SUMMARY:
+==15803==     in use at exit: 1,168 bytes in 49 blocks
+==15803==   total heap usage: 319 allocs, 270 frees, 19,896 bytes allocated
+==15803== 
+==15803== 824 bytes in 36 blocks are definitely lost in loss record 9 of 9
+==15803==    at 0x4C28BFD: malloc (in /usr/lib64/valgrind/vgpreload_memcheck-amd64-linux.so)
+==15803==    by 0x4028BF: tokenize (sql.c:278)
+==15803==    by 0x4031C3: map (part2.c:23)
+==15803==    by 0x401B5F: worker_map (libmapreduce.c:190)
+==15803==    by 0x4E3BDF2: start_thread (in /usr/lib64/libpthread-2.17.so)
+==15803==    by 0x51461AC: clone (in /usr/lib64/libc-2.17.so)
+==15803== 
+==15803== LEAK SUMMARY:
+==15803==    definitely lost: 824 bytes in 36 blocks
+==15803==    indirectly lost: 0 bytes in 0 blocks
+==15803==      possibly lost: 0 bytes in 0 blocks
+==15803==    still reachable: 344 bytes in 13 blocks
+==15803==         suppressed: 0 bytes in 0 blocks
+==15803== Reachable blocks (those to which a pointer was found) are not shown.
+==15803== To see them, rerun with: --leak-check=full --show-leak-kinds=all
+==15803== 
+==15803== For counts of detected and suppressed errors, rerun with: -v
+==15803== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 2 from 2)
+==15802== 
+==15802== HEAP SUMMARY:
+==15802==     in use at exit: 0 bytes in 0 blocks
+==15802==   total heap usage: 309 allocs, 309 frees, 18,810 bytes allocated
+==15802== 
+==15802== All heap blocks were freed -- no leaks are possible
+==15802== 
+==15802== For counts of detected and suppressed errors, rerun with: -v
+==15802== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 2 from 2)
       </textarea>
      </div>
     </div>
