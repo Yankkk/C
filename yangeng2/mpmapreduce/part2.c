@@ -43,7 +43,7 @@ void map(int fd, const char *data)
    			else{
    				if(QUERY->func == COUNT){
    					char st[100];
-   					int len = snprintf(st, 100, "%s: %s\n", v[QUERY->group_by_column], "1");
+   					int len = snprintf(st, 100, "%s: %d\n", v[QUERY->group_by_column], 1);
    					write(fd, st, len);
    				}
    				else{
