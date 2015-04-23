@@ -1,7 +1,7 @@
 SOURCES=$(wildcard *.c)
 EXECS=$(SOURCES:.c=)
 CC = gcc
-FLAGS = -W -Wall -g -std=c99 -Wno-unused-variable -Wno-unused-parameter  
+FLAGS = -W -Wall -g -std=gnu99 -Wno-unused-variable -Wno-unused-parameter  
 
 all: filelist webserver
 
