@@ -46,7 +46,7 @@ int main(int argc, char**argv) {
             break;                                     
             
         // wrap the client file descriptor into a FILE     
-        FILE* f = fdopen(client_fd, "r+");
+        FILE* f = fdopen(client_fd,"a+");
 
         serve(f);
         fclose(f);
