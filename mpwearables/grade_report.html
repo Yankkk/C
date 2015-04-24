@@ -1,0 +1,301 @@
+<!DOCTYPE doctype html>
+<html lang="en">
+ <head>
+  <meta charset="utf-8">
+   <title>
+    GRADE REPORT
+   </title>
+   <!-- <link rel="stylesheet" href="style.css"> -->
+   <style>
+    nav, header, section, footer, div {
+			text-align: center;
+			margin-left: auto;
+			margin-right: auto;
+			width: 100%;
+		}
+
+		textarea {
+			background-color: black;
+			color: white;
+			font-family: monospace;
+		}
+
+		.two_column {
+			-webkit-column-count: 2; /* Chrome, Safari, Opera */
+		    -moz-column-count: 2; /* Firefox */
+		    column-count: 2;
+		}
+
+		.result {
+			text-align: center;
+			margin-left: auto;
+			margin-right: auto;
+			width: 60%;
+		}
+		
+		.testcase {
+			padding-top: 2.5%;
+			padding-bottom: 2.5%;
+			border: 1px solid black;
+		}
+
+		.pass {
+			color: green;
+		}
+		
+		.fail {
+			color: red;
+		}
+
+		.hidden {
+			display: none;
+		}
+		
+		.visible {
+			display: visible;
+			-webkit-animation: fadein 2s; /* Chrome, Safari, Opera */
+		}
+   </style>
+  </meta>
+ </head>
+ <body onhashchange="load();" onload="load();">
+  <!-- Navigation -->
+  <nav>
+   <button onclick="incrementResults(-1)">
+    Previous Results
+   </button>
+   <!-- Selector gets populated by Beautiful Soup 4 -->
+   <select id="selector" onchange="changeResults(this.value)">
+    <option selected="selected" value="Chart">
+     Chart
+    </option>
+    <option value="0">
+     2015-04-24 02:23:02.657117
+    </option>
+   </select>
+   <button onclick="incrementResults(1)">
+    Next Results
+   </button>
+  </nav>
+  <div id="disclaimer" style="width:60%; text-align:left">
+   <h2>
+    <span style="color:red;">
+     Disclaimer:
+    </span>
+   </h2>
+   This autograder is a preliminary assessment of your program's correctness. Your grade may change UP OR DOWN based on the CORRECTNESS OF YOUR PROGRAM. We make every effort to ensure that our autograder is 'smart' enough to not count off for simple things like grammar but, in doing so, we may inadvertently allow for incorrect code to be counted as correct. If we have to change our script to better reflect the CORRECTNESS OF YOUR PROGRAM, we will run the script on EVERY TESTCASE and update EVERY STUDENT'S AUTOGRADER OUTPUT to ensure fairness to all students. Thanks for understanding!
+   <br/>
+   <br/>
+   <span style="color:red;">
+    Acedemic Integrity:
+   </span>
+   A reminder the University of Illinois and the department of computer science has a
+   <a href="https://cs.illinois.edu/current-students/undergraduates/policies-and-procedures-0/honor-code-and-academic-integrity" target="_blank">
+    policy
+   </a>
+   about what is allowed regarding collaboration and publishing of solutions. i.e. Your score should be based on your own work and you may not publish your solutions or leave them in 'plain view'. For this MP, the code you submit must be your own work i.e. entirely your own work product.
+   <br/>
+   <span style="color:green;">
+    Rule of Thumb
+   </span>
+   - If at any point you can not reproduce the code you have submitted, then you have cheated. We run an in house plagiarism detector (not MOSS) and we have caught students. The standard punishments are a 0 on the assignment and a letter grade reduced from your final grade for a first time offense and an F in the class with a permenant mark on your transcript that future instructors and employers can see for a second time offense.
+   <br/>
+   <br/>
+   - CS 241 Staff
+  </div>
+  <!-- Results -->
+  <section id="results">
+   <div id="carousel">
+    <h1>
+     Results
+    </h1>
+    <div class="visible result" id="result_div">
+     <div class="two_column">
+      <h2 id="revision">
+       Revision: 19312
+      </h2>
+      <h2 id="timestamp">
+       Time: 2015-04-24 02:23:02.657117
+      </h2>
+     </div>
+     <br/>
+     <br/>
+     <br/>
+     <div class="testcase" id="testcase_div">
+      <div class="two_column">
+       <h3 id="testcase">
+        TestCase: One Wearable
+       </h3>
+       <h3 class="pass" id="score">
+        Score: 10
+       </h3>
+      </div>
+      <h4>
+       Output Log
+      </h4>
+      <textarea cols="80" id="output_log" rows="15">
+       Testing server with one wearable ... 
+If you don't pass this, then you should just give up
+Trying to compile your code...
+Successfully compiled your code..
+Diffing your output with the expected solution...
+Successfully matched solution!
+      </textarea>
+     </div>
+     <div class="testcase" id="testcase_div">
+      <div class="two_column">
+       <h3 id="testcase">
+        TestCase: Two Wearable
+       </h3>
+       <h3 class="pass" id="score">
+        Score: 10
+       </h3>
+      </div>
+      <h4>
+       Output Log
+      </h4>
+      <textarea cols="80" id="output_log" rows="15">
+       Testing server with two wearables
+Trying to compile your code...
+Successfully compiled your code..
+Diffing your output with the expected solution...
+Successfully matched solution!
+      </textarea>
+     </div>
+     <div class="testcase" id="testcase_div">
+      <div class="two_column">
+       <h3 id="testcase">
+        TestCase: Synchronized
+       </h3>
+       <h3 class="pass" id="score">
+        Score: 10
+       </h3>
+      </div>
+      <h4>
+       Output Log
+      </h4>
+      <textarea cols="80" id="output_log" rows="15">
+       Testing Server for synchronization...
+Trying to compile your code...
+Successfully compiled your code..
+Diffing your output with the expected solution...
+Successfully matched solution!
+      </textarea>
+     </div>
+     <div class="testcase" id="testcase_div">
+      <div class="two_column">
+       <h3 id="testcase">
+        TestCase: Stress
+       </h3>
+       <h3 class="pass" id="score">
+        Score: 10
+       </h3>
+      </div>
+      <h4>
+       Output Log
+      </h4>
+      <textarea cols="80" id="output_log" rows="15">
+       Stress Testing Server...
+Trying to compile your code...
+Successfully compiled your code..
+Diffing your output with the expected solution...
+Successfully matched solution!
+      </textarea>
+     </div>
+     <div class="testcase" id="testcase_div">
+      <div class="two_column">
+       <h3 id="testcase">
+        TestCase: Tricky
+       </h3>
+       <h3 class="pass" id="score">
+        Score: 10
+       </h3>
+      </div>
+      <h4>
+       Output Log
+      </h4>
+      <textarea cols="80" id="output_log" rows="15">
+       Now I'm just messing with you :)
+Trying to compile your code...
+Successfully compiled your code..
+Diffing your output with the expected solution...
+Successfully matched solution!
+      </textarea>
+     </div>
+    </div>
+   </div>
+  </section>
+  <!-- // <script src="script.js"></script> -->
+  <script type="text/javascript">
+   function getDirectChildren(){
+			var carousel = document.getElementById('carousel');
+			var child_divs = carousel.getElementsByTagName('div');
+			var direct_children = [];
+			for (i=0; i<child_divs.length;i++){
+				var className = child_divs[i].getAttribute("class")
+				if (className == "visible result" || className == "hidden result"){
+					direct_children.push(child_divs[i]);
+				}
+			}
+			return direct_children;
+		}
+
+		function getCurrentResultIndex(){
+			var direct_children = getDirectChildren();
+			var current_index = -1;
+			// alert("number of results: "+direct_children.length)
+			for (i=0; i<direct_children.length;i++){
+				var div = direct_children[i];
+				if(div.getAttribute("class") == "visible result"){
+					current_index = i;
+					break;
+				}
+			}
+			return current_index;
+		}
+
+		function incrementResults(amount){
+			// alert("hi");
+			var direct_children = getDirectChildren();
+			var current_index = getCurrentResultIndex();
+			// alert("current_index: "+current_index)
+			var next_index = ((current_index+amount)%direct_children.length+direct_children.length)%direct_children.length;
+			// alert("next_index: " + next_index)
+			change_page(next_index);
+		}
+
+		function changeResults(destination){
+			var direct_children = getDirectChildren();
+			var current_index = getCurrentResultIndex();
+			var diff = destination - current_index;
+			incrementResults(diff);
+		}
+
+		function load(){
+			var page_number = location.hash.split("#")[1];
+			if(page_number == null){
+				change_page(0);
+			}
+			if(!isNaN(page_number)){
+				change_page(parseInt(page_number));
+			}
+		}
+
+		function change_page(page_number){
+			if(page_number == "Chart"){
+				window.location.replace("thumbs.html");
+				return;
+			}
+			direct_children = getDirectChildren();
+			for (i=0; i<direct_children.length;i++){
+				var div = direct_children[i];
+				div.className = "hidden result";
+			}
+			next_div = direct_children[page_number];
+			next_div.className = "visible result";
+			document.getElementById('selector').value = page_number.toString();
+			location.hash = "#"+page_number.toString();
+		}
+  </script>
+ </body>
+</html>
