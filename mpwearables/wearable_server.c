@@ -243,7 +243,7 @@ int open_server_socket(const char* port) {
 		perror("listen()");
 		exit(1);
 	}
-	free(result);
+	freeaddrinfo(result);
 	return sock_fd;
 }
 
