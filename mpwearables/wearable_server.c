@@ -25,6 +25,7 @@ pthread_mutex_t queue_lock_;
 queue_t receieved_data_;
 
 
+
 typedef struct SampleData {
 
 	char type_[50];
@@ -82,10 +83,12 @@ void extract_key(char* line, long* timestamp, SampleData** ret) {
 }
 
 pthread_cond_t cv = PTHREAD_COND_INITIALIZER;
-unsigned long *data_array;
-int total;
+//unsigned long *data_array;
+//int total;
 int num;
-
+long global_start;
+long current_end;
+long global_end;
 
 void* wearable_processor_thread(void* args) {
 	//int socketfd = *((int*)args);
@@ -94,12 +97,12 @@ void* wearable_processor_thread(void* args) {
 	//TODO read data from the socket until -1 is returned by read
 	
 	pthread_mutex_lock(&queue_lock_);
-	int current = num;
-	int count=0;
-	data_array=realloc(data_array,sizeof(long)*(num+1));
+	//int current = num;
+	//int count=0;
+	//data_array=realloc(data_array,sizeof(long)*(num+1));  // reallocate data_array
 	num++;
 	pthread_mutex_unlock(&queue_lock_);
-	// reallocate data_array
+	
 	char buffer[64];
 	while (recv(socketfd, buffer, 64,0) > 0){
 
@@ -108,29 +111,26 @@ void* wearable_processor_thread(void* args) {
 		extract_key(buffer,&timestamp,&ret);
 		pthread_mutex_lock(&queue_lock_);
 		queue_insert(&receieved_data_,(unsigned long)timestamp,ret);
-		total++;
+
+		if(timestamp > current_end){
+			current_end = timestamp;
+			pthread_cond_broadcast(&cv);
+		}
 		pthread_mutex_unlock(&queue_lock_);	
-		data_array[current]=timestamp;
-		// add the currnt entry to the data_array
-		pthread_cond_broadcast(&cv);	
-		count++;
+		//data_array[current]=timestamp;  // add the currnt entry to the data_array  ///
+		//pthread_cond_broadcast(&cv);	 
+		//count++;            /////
 	}
+	
+	//data_array[current]=-1;
+	// save the last entry as -1
+	pthread_mutex_lock(&queue_lock_);
+	num--;
+	pthread_mutex_unlock(&queue_lock_);
+	pthread_cond_broadcast(&cv);
 	// close the file
 	close(socketfd);
-	data_array[current]=-1;
-	// save the last entry as -1
-	pthread_cond_broadcast(&cv);
 	return NULL;
-}
-// determine whether get the last timestamp
-int time_send_data(long* data_array,int num, long final_timestamp){
-	int i;
-	for(i=0;i<num;i++){
-		if(data_array[i]!=-1 && data_array[i]<final_timestamp){
-			return 0;
-		} 
-	}
-	return 1;
 }
 
 // selectors
@@ -158,6 +158,18 @@ int selector3(void* entry){
 	return 0;
 }
 
+// determine whether get the last timestamp
+/**
+int time_to_send_data(long* data_array,int num, long final_timestamp){
+	int i;
+	for(i=0;i<num;i++){
+		if(data_array[i]!=-1 && data_array[i]<final_timestamp){
+			return 0;
+		} 
+	}
+	return 1;
+}
+*/
 	
 //pthread_mutex_t m2 = PTHREAD_MUTEX_INITIALIZER;
 
@@ -172,27 +184,28 @@ void* user_request_thread(void* args) {
 	//before you send data, check timestamp array
 	char buffer[1024];
 	while(recv(socketfd,buffer,1024,0)>0){
-		unsigned long start;
-		unsigned long end;
-		sscanf(buffer,"%lu:%lu",&start, &end);
+		//unsigned long start;
+		//unsigned long end;
+		sscanf(buffer,"%lu:%lu",&global_start, &global_end);
 		pthread_mutex_lock(&queue_lock_);
-		while(time_send_data(data_array,num,end)!=1){
+		//while(time_to_send_data(data_array,num,end)!=1){
+		while(global_end > current_end && num > 0){
 			pthread_cond_wait(&cv,&queue_lock_);
 		}
-		
+		pthread_mutex_unlock(&queue_lock_);
 		int size1,size2,size3;
-		timestamp_entry* results1 = queue_gather(&receieved_data_,(unsigned long)start,(unsigned long)end, selector1,&size1);
-		timestamp_entry* results2 = queue_gather(&receieved_data_,(unsigned long)start,(unsigned long)end, selector2,&size2);
-		timestamp_entry* results3 = queue_gather(&receieved_data_,(unsigned long)start,(unsigned long)end, selector3,&size3);
-		write_results(socketfd,TYPE1,results1,size1);
+		timestamp_entry* results1 = queue_gather(&receieved_data_,(unsigned long)global_start,(unsigned long)global_end, selector1,&size1);
+		timestamp_entry* results2 = queue_gather(&receieved_data_,(unsigned long)global_start,(unsigned long)global_end, selector2,&size2);
+		timestamp_entry* results3 = queue_gather(&receieved_data_,(unsigned long)global_start,(unsigned long)global_end, selector3,&size3);
+		write_results(socketfd,TYPE1,results1,size1);         // write the result back into the socketfd
 		write_results(socketfd,TYPE2,results2,size2);
 		write_results(socketfd,TYPE3,results3,size3);
 		write(socketfd,"\r\n",2);
 		// write to file
-		pthread_mutex_unlock(&queue_lock_);
+
 		
 		free(results1);
-		free(results2);
+		free(results2);                                   // free!
 		free(results3);
 	}
 	close(socketfd);
@@ -243,7 +256,7 @@ void signal_received(int sig) {
 	close(wearable_server_fd);
 	pthread_mutex_destroy(&queue_lock_);
 	pthread_cond_destroy(&cv);
-	free(data_array);
+//	free(data_array);
 }
 
 int main(int argc, const char* argv[]) {
@@ -267,7 +280,7 @@ int main(int argc, const char* argv[]) {
 	
 	//TODO accept continous requests
 	tid = malloc(1);
-	data_array=malloc(1);
+//	data_array=malloc(1);
 	while(1){
 		int client_fd = accept(wearable_server_fd,NULL,NULL);
 		if(client_fd ==-1){
