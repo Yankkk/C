@@ -111,7 +111,7 @@ void* wearable_processor_thread(void* args) {
 		extract_key(buffer,&timestamp,&ret);
 		pthread_mutex_lock(&queue_lock_);
 		queue_insert(&receieved_data_,(unsigned long)timestamp,ret);
-
+		//printf("%ld\n", current_end);
 		if(timestamp > current_end){
 			current_end = timestamp;
 			pthread_cond_broadcast(&cv);
@@ -187,12 +187,14 @@ void* user_request_thread(void* args) {
 		//unsigned long start;
 		//unsigned long end;
 		sscanf(buffer,"%lu:%lu",&global_start, &global_end);
+		//printf("%ld %ld\n", current_end, global_end);
 		pthread_mutex_lock(&queue_lock_);
 		//while(time_to_send_data(data_array,num,end)!=1){
 		while(global_end > current_end && num > 0){
 			pthread_cond_wait(&cv,&queue_lock_);
 		}
 		pthread_mutex_unlock(&queue_lock_);
+		//printf("%ld %ld\n", current_end, global_end);
 		int size1,size2,size3;
 		timestamp_entry* results1 = queue_gather(&receieved_data_,(unsigned long)global_start,(unsigned long)global_end, selector1,&size1);
 		timestamp_entry* results2 = queue_gather(&receieved_data_,(unsigned long)global_start,(unsigned long)global_end, selector2,&size2);
@@ -254,8 +256,8 @@ void signal_received(int sig) {
 	//TODO close server socket, free anything you dont free in main
 	// free()
 	close(wearable_server_fd);
-	pthread_mutex_destroy(&queue_lock_);
-	pthread_cond_destroy(&cv);
+//	pthread_mutex_destroy(&queue_lock_);
+//	pthread_cond_destroy(&cv);
 //	free(data_array);
 }
 
