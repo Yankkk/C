@@ -242,10 +242,10 @@ void* worker_funcs(void* arg) {
     	int start = task->start;
     	int end = task->end;
     	int len = task->end - task->start;
-    	//qsort(data +start,len,sizeof(int), compare_fns);
+    	qsort(data +start,len,sizeof(int), compare_fns);
     	//quick(data, start, end-1); 
     	//insert(data, start, end-1);
-    	insertquick(data, start, end-1);
+    	//insertquick(data, start, end-1);
     	if(verbose) 
     		print_stat(data,start,end);
     	free(task);
