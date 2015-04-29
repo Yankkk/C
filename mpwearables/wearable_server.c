@@ -97,8 +97,7 @@ void* wearable_processor_thread(void* args) {
 	//TODO read data from the socket until -1 is returned by read
 	
 	pthread_mutex_lock(&queue_lock_);
-	//int current = num;
-	//int count=0;
+	
 	//data_array=realloc(data_array,sizeof(long)*(num+1));  // reallocate data_array
 	num++;
 	pthread_mutex_unlock(&queue_lock_);
@@ -119,7 +118,7 @@ void* wearable_processor_thread(void* args) {
 		pthread_mutex_unlock(&queue_lock_);	
 		//data_array[current]=timestamp;  // add the currnt entry to the data_array  ///
 		//pthread_cond_broadcast(&cv);	 
-		//count++;            /////
+		
 	}
 	
 	//data_array[current]=-1;
@@ -158,20 +157,19 @@ int selector3(void* entry){
 	return 0;
 }
 
-// determine whether get the last timestamp
+
 /**
-int time_to_send_data(long* data_array,int num, long final_timestamp){
+int helper_data(long* data_array,int num, long f){
 	int i;
 	for(i=0;i<num;i++){
-		if(data_array[i]!=-1 && data_array[i]<final_timestamp){
-			return 0;
+		if(data_array[i]<f && data_array[i]!=-1 && ){
+			return -1;
 		} 
 	}
 	return 1;
 }
 */
-	
-//pthread_mutex_t m2 = PTHREAD_MUTEX_INITIALIZER;
+
 
 void* user_request_thread(void* args) {
 	int socketfd = *((int*)args);
@@ -195,20 +193,22 @@ void* user_request_thread(void* args) {
 		}
 		pthread_mutex_unlock(&queue_lock_);
 		//printf("%ld %ld\n", current_end, global_end);
-		int size1,size2,size3;
-		timestamp_entry* results1 = queue_gather(&receieved_data_,(unsigned long)global_start,(unsigned long)global_end, selector1,&size1);
-		timestamp_entry* results2 = queue_gather(&receieved_data_,(unsigned long)global_start,(unsigned long)global_end, selector2,&size2);
-		timestamp_entry* results3 = queue_gather(&receieved_data_,(unsigned long)global_start,(unsigned long)global_end, selector3,&size3);
-		write_results(socketfd,TYPE1,results1,size1);         // write the result back into the socketfd
-		write_results(socketfd,TYPE2,results2,size2);
-		write_results(socketfd,TYPE3,results3,size3);
+		int s1;
+		int s2;
+		int s3;
+		timestamp_entry* r1 = queue_gather(&receieved_data_,(unsigned long)global_start,(unsigned long)global_end, selector1,&s1);
+		timestamp_entry* r2 = queue_gather(&receieved_data_,(unsigned long)global_start,(unsigned long)global_end, selector2,&s2);
+		timestamp_entry* r3 = queue_gather(&receieved_data_,(unsigned long)global_start,(unsigned long)global_end, selector3,&s3);
+		write_results(socketfd,TYPE1,r1,s1);         // write the result back into the socketfd
+		write_results(socketfd,TYPE2,r2,s2);
+		write_results(socketfd,TYPE3,r3,s3);
 		write(socketfd,"\r\n",2);
 		// write to file
 
 		
-		free(results1);
-		free(results2);                                   // free!
-		free(results3);
+		free(r1);
+		free(r2);                                   // free!
+		free(r3);
 	}
 	close(socketfd);
 	return NULL;
@@ -282,7 +282,6 @@ int main(int argc, const char* argv[]) {
 	
 	//TODO accept continous requests
 	tid = malloc(1);
-//	data_array=malloc(1);
 	while(1){
 		int client_fd = accept(wearable_server_fd,NULL,NULL);
 		if(client_fd ==-1){
