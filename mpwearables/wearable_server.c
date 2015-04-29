@@ -107,9 +107,9 @@ void* wearable_processor_thread(void* args) {
 
 		unsigned long timestamp;
 		SampleData *ret;
-		extract_key(buffer,&timestamp,&ret);
+		extract_key(buffer, &timestamp, &ret);
 		pthread_mutex_lock(&queue_lock_);
-		queue_insert(&receieved_data_,(unsigned long)timestamp,ret);
+		queue_insert(&receieved_data_, timestamp, ret);
 		//printf("%ld\n", current_end);
 		if(timestamp > current_end){
 			current_end = timestamp;
@@ -135,7 +135,16 @@ void* wearable_processor_thread(void* args) {
 // selectors
 int selector1(void* entry){
 	SampleData* ret =(SampleData*)entry;
-	if(strcmp(TYPE1,ret->type_)==0){
+	if(strcmp(TYPE1, ret->type_)==0){
+		return 1;
+	}
+	return 0;
+}
+
+
+int selector3(void* entry){
+	SampleData* ret =(SampleData*)entry;
+	if(strcmp(TYPE3, ret->type_)==0){
 		return 1;
 	}
 	return 0;
@@ -143,20 +152,11 @@ int selector1(void* entry){
 
 int selector2(void* entry){
 	SampleData* ret =(SampleData*)entry;
-	if(strcmp(TYPE2,ret->type_)==0){
+	if(strcmp(TYPE2, ret->type_)==0){
 		return 1;
 	}
 	return 0;
 }
-
-int selector3(void* entry){
-	SampleData* ret =(SampleData*)entry;
-	if(strcmp(TYPE3,ret->type_)==0){
-		return 1;
-	}
-	return 0;
-}
-
 
 /**
 int helper_data(long* data_array,int num, long f){
@@ -189,20 +189,22 @@ void* user_request_thread(void* args) {
 		pthread_mutex_lock(&queue_lock_);
 		//while(time_to_send_data(data_array,num,end)!=1){
 		while(global_end > current_end && num > 0){
-			pthread_cond_wait(&cv,&queue_lock_);
+			pthread_cond_wait(&cv, &queue_lock_);
 		}
 		pthread_mutex_unlock(&queue_lock_);
 		//printf("%ld %ld\n", current_end, global_end);
 		int s1;
 		int s2;
 		int s3;
-		timestamp_entry* r1 = queue_gather(&receieved_data_,(unsigned long)global_start,(unsigned long)global_end, selector1,&s1);
-		timestamp_entry* r2 = queue_gather(&receieved_data_,(unsigned long)global_start,(unsigned long)global_end, selector2,&s2);
-		timestamp_entry* r3 = queue_gather(&receieved_data_,(unsigned long)global_start,(unsigned long)global_end, selector3,&s3);
-		write_results(socketfd,TYPE1,r1,s1);         // write the result back into the socketfd
-		write_results(socketfd,TYPE2,r2,s2);
-		write_results(socketfd,TYPE3,r3,s3);
-		write(socketfd,"\r\n",2);
+		
+		timestamp_entry* r1 = queue_gather(&receieved_data_, global_start, global_end, selector1, &s1);
+		timestamp_entry* r2 = queue_gather(&receieved_data_, global_start, global_end, selector2, &s2);
+		timestamp_entry* r3 = queue_gather(&receieved_data_, global_start, global_end, selector3, &s3);
+		
+		write_results(socketfd, TYPE1, r1, s1);         // write the result back into the socketfd
+		write_results(socketfd, TYPE2, r2, s2);
+		write_results(socketfd, TYPE3, r3, s3);
+		write(socketfd, "\r\n", 2);
 		// write to file
 
 		
@@ -226,25 +228,31 @@ int open_server_socket(const char* port) {
 	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
-	s = getaddrinfo(NULL,port,&hints,&result);
+	s = getaddrinfo(NULL, port, &hints, &result);
+	
 	if(s!=0){
-		fprintf(stderr,"getaddrinfo: %s\n",gai_strerror(s));
+		fprintf(stderr,"getaddrinfo: %s\n", gai_strerror(s));
 		exit(1);	
 	}
+	
 	if(sock_fd == -1){
 		perror("socket");
 		exit(1);
 	}
+	
 	int optval = 1;
-	setsockopt(sock_fd,SOL_SOCKET,SO_REUSEPORT,&optval,sizeof(optval));  // reuse of the ports
-	if(bind(sock_fd,result->ai_addr,result->ai_addrlen)!=0){
+	setsockopt(sock_fd, SOL_SOCKET, SO_REUSEPORT, &optval, sizeof(optval));  // reuse of the ports
+	
+	if(bind(sock_fd, result->ai_addr, result->ai_addrlen)!=0){
 		perror("bind");
 		exit(1);
 	}
+	
 	if(listen(sock_fd,40)){
 		perror("listen()");
 		exit(1);
 	}
+	
 	freeaddrinfo(result);
 	return sock_fd;
 }
@@ -283,18 +291,18 @@ int main(int argc, const char* argv[]) {
 	//TODO accept continous requests
 	tid = malloc(1);
 	while(1){
-		int client_fd = accept(wearable_server_fd,NULL,NULL);
+		int client_fd = accept(wearable_server_fd, NULL, NULL);
 		if(client_fd ==-1){
 			break;
 		}
-		tid = realloc(tid,sizeof(pthread_t)*(thread_num+1));
-		pthread_create(&tid[thread_num],NULL,wearable_processor_thread,(void*)client_fd);
+		tid = realloc(tid, sizeof(pthread_t)*(thread_num+1));
+		pthread_create(&tid[thread_num], NULL, wearable_processor_thread, (void*)client_fd);
 		thread_num++;
 	}
 	int i;
 	//TODO join all threads we spawned from the wearables
 	for(i=0;i<thread_num;i++){
-		pthread_join(tid[i],NULL);
+		pthread_join(tid[i], NULL);
 	}
 	free(tid);
 	pthread_join(request_thread, NULL);
