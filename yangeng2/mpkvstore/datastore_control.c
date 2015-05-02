@@ -152,12 +152,13 @@ jsonres_t process_request(const char * uri, jsonreq_t request)
     	if(rev == 0){
     		response.success = "KEY ALREADY EXISTS";
     	}
-    	else{
+    	
+    	//else{
     		//add(request.key, request.value, 1, data);
-    		response.success = "true";	
+    		//response.success = "true";	
     		//response.value = request.value;
     		//response.rev = rev;	
-    	}
+    	//}
     	//datastore_entry_t *entry = dictionary_tfind(data, key);
 		//printf("add: %s %s %d\n", entry->value, entry->key, entry->rev);
     }
