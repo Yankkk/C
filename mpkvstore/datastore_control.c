@@ -56,7 +56,7 @@ void load()
 	 int rev;
 	 char k[2] = " ";
 	 ssize_t r;
-	 while(r=getline(&buffer, &len, fd)>0 ){
+	 while(r = getline(&buffer, &len, fd)>0 ){
 	 	buffer[len-1] = '\0';
 	 	key = strtok(buffer, k);
 	 	value = strtok(NULL, k);
