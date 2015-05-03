@@ -109,19 +109,21 @@ void help_action(const void * node, const VISIT which, const int dep){
                break;
            case postorder:
               	
-               //fprintf(FD, "%s %s %ld\n", temp->key, temp->value, temp->rev);
-               
+               fprintf(FD, "%s %s %ld\n", temp->key, temp->value, temp->rev);
+               /*
                sprintf(str, "%s %s %ld\n", temp->key, temp->value, temp->rev);
                fwrite( str, 1, strlen(str), FD);
+               */
                
                break;
            case endorder:
                break;
            case leaf:
-           	  // char strs[1024];
+				/*           
                sprintf(str, "%s %s %ld\n", temp->key, temp->value, temp->rev);
                fwrite( str, 1, strlen(str), FD);
-               //fprintf(FD, "%s %s %ld\n", temp->key, temp->value, temp->rev);
+               */
+               fprintf(FD, "%s %s %ld\n", temp->key, temp->value, temp->rev);
                break;
            }
 
