@@ -174,10 +174,11 @@ jsonres_t process_request(const char * uri, jsonreq_t request)
     	}
     	//datastore_entry_t *entry = dictionary_tfind(data, "0");
 		//printf("add: %s %s %d\n", entry->value, entry->key, entry->rev);
-    	if(rev == -2){
+    	else if(rev == -2){
     		response.success = "REVISION NUMBER DOES NOT MATCH";
     	}
-    	if(rev == 0){
+    	//if(rev == 0){
+    	else{
     		response.success = "KEY DOES NOT EXIST";
     	}
     	
