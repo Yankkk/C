@@ -30,7 +30,9 @@ void init()
 	}
 	*/
 	data = malloc(sizeof(datastore_t));
-	datastore_init(data);
+	//datastore_init(data);
+	data->root = NULL;
+	pthread_mutex_init(&data->mutex, NULL);
 	
 }
 /*
