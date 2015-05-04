@@ -60,14 +60,14 @@ static void destroy_with_element_free(void *ptr)
 	free(entry);
 }
 
-/*
+
 void datastore_init(datastore_t *ds)
 {
 	ds->root = NULL;
 	pthread_mutex_init(&ds->mutex, NULL);
 }
 
-*/
+
 unsigned long datastore_put(datastore_t *ds, const char *key, const char *value, const long rev)
 {
 	pthread_mutex_lock(&ds->mutex);
