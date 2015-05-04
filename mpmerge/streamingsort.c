@@ -78,7 +78,6 @@ task_t* mdequeue() {
   return result;
 }
 
-
 static int compare_fns(const void *arg1, const void *arg2) {
   return (*((int*)arg1)) - (*((int*)arg2)); 
 }
