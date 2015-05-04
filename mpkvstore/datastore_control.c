@@ -29,7 +29,6 @@ void init()
 		data->probe[i] = 0;
 	}
 	*/
-	
 	data = malloc(sizeof(datastore_t));
 	datastore_init(data);
 	
