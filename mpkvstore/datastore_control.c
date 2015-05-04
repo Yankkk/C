@@ -177,6 +177,7 @@ jsonres_t process_request(const char * uri, jsonreq_t request)
     	else if(rev == -2){
     		response.success = "REVISION NUMBER DOES NOT MATCH";
     	}
+    	
     	//if(rev == 0){
     	else{
     		response.success = "KEY DOES NOT EXIST";
