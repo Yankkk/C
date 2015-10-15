@@ -6,6 +6,8 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import java.net.Socket;
+
 
 public class WebcamMainActivity extends ActionBarActivity {
 
@@ -62,6 +64,35 @@ public class WebcamMainActivity extends ActionBarActivity {
         if(c == null) return null;
         return c.getRecentImageBytes();
     }
-    private native void nativeStartServer();
+    private native int nativeStartServer();
     private native void nativeStopServer();
+/*
+    final int port = nativeStartServer();
+
+    Thread t = new Thread() {
+
+        public void run() {
+            try {
+                // Assumes IP4
+                Socket s = new Socket("www.illinois.edu", 80);
+                final String addr= s.getLocalAddress().getHostAddress();
+
+
+                Log.d(TAG,addr);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        setTitle(addr+":"+port);
+                    }
+                });
+                s.close();
+            } catch (Exception ex) {
+                Log.e(TAG, ex.getMessage(), ex);
+            }
+        }
+    };
+    setTitle("webcam port "+port);
+    t.start();
+    */
+
 }

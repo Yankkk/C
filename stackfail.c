@@ -8,7 +8,7 @@
 #include <semaphore.h>
 
 #define N (10)
-#define OPS (10)
+#define OPS (12)
 #define CHECK(expression, mesg) if((expression)) { write(1,mesg,strlen(mesg)); write(1,"\n\n",2); exit(1);}
 
 //  gcc -Wall -pthread -o stackfail stackfail.c 
@@ -41,11 +41,11 @@ void unsafepush(int value) {
   CHECK(count < 0, "Ooops - unsafepush: invalid count (N negative)");   //
   CHECK(count > N, "Ooops - unsafepush: invalid count (N too large, buffer overflow)");  //
   CHECK(in_critical_section > 1,"Ooops - no mutual exclusion");
-  
+  /*
   if(count == N){
   	count = 0;
   } 
-  
+  */
   data[count++] = value;
   c++;
   in_critical_section--;
@@ -59,11 +59,11 @@ int unsafepop() {
   CHECK(count < 0, "Ooops - unsafepop: invalid count (N zero or negative, buffer underflow)");   //
   CHECK(count > N, "Ooops - unsafepop: invalid count (N too large)");    //
   CHECK(in_critical_section > 1,"Ooops - no mutual exclusion");
-  
+  /*
   if(count == 0){
 		count = N;
 	}
-
+	*/
   int result=data[--count];
   c--;
   in_critical_section--;
@@ -126,7 +126,7 @@ void push_v3(int value) {
   pthread_mutex_lock(&MUTEX);  
 
   unsafepush(value); // CRITICAL SECTION
-  	
+
   pthread_mutex_unlock(&MUTEX);
   sem_post(&sem2);
 }

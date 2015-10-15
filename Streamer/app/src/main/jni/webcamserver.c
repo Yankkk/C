@@ -22,8 +22,10 @@ static jobject myactivity;
 int write_binary(FILE*f, char*mimetype, size_t len, void* data) {
     fprintf(f,"HTTP/1.1 200 OK\r\nConnection: close\r\n\Content-Length: %d\r\nContent-Type: %s\r\n\r\n", len,mimetype);
     // Hint man fwrite (the FILE equivalent of write)
-    ?
+
+    fwrite(data, len, len, f);
     return 1;
+
 }
 int write_text(FILE*f, char* mimetype, char*content) {
     LOGD("Writing %s %s",mimetype, content);
@@ -55,8 +57,8 @@ int write_cameraimage(FILE*f) {
 
 
         char*mimetype = "image/jpeg";
-        ? Send bytes to client
-
+        //? Send bytes to client
+        write_binary(f, mimetype, len, ptr);
         (*env)->ReleaseByteArrayElements(env, arr, ptr, 0);
     } else {
         LOGD("No camera image is not ready");
@@ -73,11 +75,11 @@ int process_request(FILE *f) {
     LOGD("Request: %s", line);
     char method[16]="", url[2048]="",protocol[16]="";
     // Parse the line buffer. Hint not fscanf
-    int parsed = ? (line, "%15s %2047s %15s\r\n", method, url, protocol);
+    int parsed = sscanf(line, "%15s %2047s %15s\r\n", method, url, protocol);
     LOGD("Parsed %d %s %s %s", parsed, method,url,protocol);
 
     // Check 3 arguments were parsed
-    if(? ) return write_error(f,400,"Bad Request");
+    if(parsed != 3 ) return write_error(f,400,"Bad Request");
 
     int protocol_notsup = strcmp("HTTP/1.0", protocol) &&  strcmp("HTTP/1.1", protocol) ;
     if(protocol_notsup) return write_error(f,505,"HTTP Version not supported");
@@ -102,14 +104,14 @@ void* threadfunc(void* arg) {
 
     while(sock_fd > 0) {
         LOGD("accept()...");
-        int fd = ?
+        int fd = accept(sock_fd, NULL, NULL);
 
-                 LOGD("Accepted connection %d",fd);
+        LOGD("Accepted connection %d",fd);
         if(fd == -1) {
             LOGD("Quiting server %s",strerror(errno));
             break;
         }
-        FILE* f = ?(fd, "r+"); // Hint not fopen!
+        FILE* f = fdopen(fd, "r+"); // Hint not fopen!
         process_request(f);
         fclose(f);
     }
@@ -120,7 +122,7 @@ void* threadfunc(void* arg) {
     return NULL;
 }
 
-JNIEXPORT void JNICALL Java_edu_illinios_cs241_webcam_WebcamMainActivity_nativeStartServer
+JNIEXPORT jint JNICALL Java_edu_illinios_cs241_webcam_WebcamMainActivity_nativeStartServer
 (JNIEnv * env, jobject thiz) {
     LOGD("Starting webserver");
 
@@ -129,48 +131,61 @@ JNIEXPORT void JNICALL Java_edu_illinios_cs241_webcam_WebcamMainActivity_nativeS
 
     struct addrinfo hints, *result;
     // hint dont forget to zero out all of the hints
-    ?
-
+    memset(&hints, 0, sizeof(struct addrinfo));
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags = AI_PASSIVE;
     LOGD("getaddrinfo...");
-    int ok = ?(?,?, &hints, &result);
+    int ok = getaddrinfo("172.17.45.228", "2015", &hints, &result);  //
     if(ok!=0) {
         LOGE("getaddrinfo: %s", gai_strerror(ok));
-        return;
+        return -1;
     }
     LOGD("socket...");
-    sock_fd = ___
+    sock_fd = socket(AF_INET, SOCK_STREAM, 0);
     if(sock_fd < 0) {
         LOGE("socket:%s",strerror(errno));
-        return;
+        return -1;
     }
     LOGD("setsockopt...");
     int optval = 1;
-    setsockopt(sock_fd, SOL_SOCKET, ? )
+    setsockopt(sock_fd, SOL_SOCKET, SO_REUSEPORT, &optval, sizeof(optval) );
 
     LOGD("bind... addrinfo result:%p",result);
-    if (bind(? ) != 0) {
+    if (bind(sock_fd, result->ai_addr, result->ai_addrlen) != 0) {
         LOGE("bind:%s",strerror(errno));
         perror("bind()");
-        return;
+        return -1;
     }
     LOGD("listen...");
-    if (listen(? ) != 0) {
+    if (listen(sock_fd, 10) != 0) {    //
         LOGE("listen:%s",strerror(errno));
-        return;
+        return -1;
     }
     pthread_t tid;
     LOGD("Starting server thread");
-    int threadok = pthread_create(?);
+    int threadok = pthread_create(&tid, NULL, threadfunc, NULL);
     LOGD("pthread_create returned %d", threadok);
+
+    int port = -1;
+    struct sockaddr_in sin;
+    socklen_t len = sizeof(sin);
+    if(getsockname(sock_fd, (struct sockaddr*)&sin, &len) != -1)
+         port = ntohs(sin.sin_port);
+
+    LOGD("Listening on port %d", port);
+    return port;
+
 }
 
 /*
  */
 JNIEXPORT void JNICALL Java_edu_illinios_cs241_webcam_WebcamMainActivity_nativeStopServer
+//JNIEXPORT jint JNICALL Java_edu_illinios_cs241_webcam_WebcamMainActivity_nativeStopServer
 (JNIEnv * env, jobject thiz) {
     LOGD("Closing server socket");
 
-    if(sock_fd>0) ?(sock_fd);
+    if(sock_fd>0) close(sock_fd);
     sock_fd = 0;
 
 }
